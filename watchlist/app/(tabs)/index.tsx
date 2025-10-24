@@ -1,9 +1,11 @@
+import { clearSheetUrl, getSheetUrl } from "@/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Button,
   Easing,
   FlatList,
   StyleSheet,
@@ -30,6 +32,13 @@ export default function HomeScreen() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    (async () => {
+      const link = await getSheetUrl();
+      if (!link) {
+        router.replace("/setup");
+      }
+    })();
+
     if (items.length === 0) {
       setItems([
         {
@@ -213,6 +222,15 @@ export default function HomeScreen() {
         ]}
         value={search}
         onChangeText={setSearch}
+      />
+
+      {/* temp delete button for spreadsheet */}
+      <Button
+        title="Change Spreadsheet"
+        onPress={() => {
+          clearSheetUrl();
+          router.replace("/setup");
+        }}
       />
 
       <FlatList
