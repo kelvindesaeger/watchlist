@@ -1,5 +1,6 @@
 import { clearSheetUrl, getSheetUrl } from "@/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
+import { Badge } from "@react-navigation/elements";
 import { useTheme } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -213,12 +214,47 @@ export default function HomeScreen() {
               router.push({ pathname: path, params: { id: item.id } });
             }}
           >
-            <Text style={[styles.title, { color: colors.text }]}>
-              {item.name}
-            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={[styles.title, { color: colors.text }]}>
+                {item.name}
+              </Text>
+              <Badge
+                visible
+                style={{
+                  backgroundColor:
+                    item.type === "Serie" ? "#4f83cc" : "#cc4f4f",
+                }}
+              >
+                {item.type.toUpperCase()}
+              </Badge>
+            </View>
+            {item.schedule !== "." && (
+              <Text style={[styles.type, { color: colors.text }]}>
+                {item.schedule}
+              </Text>
+            )}
             <Text style={[styles.type, { color: colors.text }]}>
-              {item.type.toUpperCase()}
+              Status: {item.status}
             </Text>
+            {item.priority !== "." && (
+              <Text style={[styles.type, { color: colors.text }]}>
+                Priority: {item.priority}
+              </Text>
+            )}
+            {item.current_season &&
+              item.current_season > 0 &&
+              item.current_episode &&
+              item.current_episode > 0 && (
+                <Text style={[styles.type, { color: colors.text }]}>
+                  {`S${item.current_season} E${item.current_episode}`}
+                </Text>
+              )}
           </TouchableOpacity>
         )}
       />
