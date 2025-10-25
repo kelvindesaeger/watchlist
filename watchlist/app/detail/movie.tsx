@@ -9,7 +9,7 @@ export default function MovieDetail() {
   const colorScheme = useColorScheme() ?? "light";
 
   const movie = items.find(
-    (i) => i.id === id && (i.type === "Movie" || i.type === "Youtube")
+    (i) => String(i.id) === id && (i.type === "Movie" || i.type === "Video")
   );
   if (!movie)
     return <Text style={styles(colorScheme).text}>Movie not found</Text>;

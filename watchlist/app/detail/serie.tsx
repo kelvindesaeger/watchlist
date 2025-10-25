@@ -8,7 +8,7 @@ export default function SerieDetail() {
   const { items } = useMedia();
   const colorScheme = useColorScheme() ?? "light";
 
-  const serie = items.find((i) => i.id === id && i.type === "Serie");
+  const serie = items.find((i) => String(i.id) === id && i.type === "Serie");
   if (!serie)
     return <Text style={styles(colorScheme).text}>Serie not found</Text>;
 

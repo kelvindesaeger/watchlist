@@ -1,18 +1,21 @@
 import React, { createContext, ReactNode, useContext, useState } from "react";
 
 // Define a media item type
-export type MediaItem = {
+export interface MediaItem {
   id: string;
   name: string;
-  type: "Movie" | "Serie" | "Youtube";
-  platform?: string;
+  type: string;
+  platform: string;
   schedule?: string;
-  status?: "Watching" | "Watched" | "Planned";
-  priority?: "High" | "Medium" | "Low" | string;
+  status?: string;
+  priority?: string;
   season?: number;
   episode?: number;
+  current_season?: number;
+  current_episode?: number;
   notes?: string;
-};
+  image?: string;
+}
 
 type MediaContextType = {
   items: MediaItem[];

@@ -16,14 +16,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MediaItem, useMedia } from "../../context/MediaContext";
+import { useFetchMedia } from "../../hooks/useFetchMedia";
 
-const TYPE_FILTERS = ["Serie", "Movie", "Youtube"];
+const TYPE_FILTERS = ["Serie", "Movie", "Video"];
 const STATUS_FILTERS = ["Watching", "Planned", "Watched"];
 
 export default function HomeScreen() {
   const router = useRouter();
   const { items, setItems } = useMedia();
   const { colors } = useTheme();
+  const { fetchMedia } = useFetchMedia();
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -37,48 +39,10 @@ export default function HomeScreen() {
       if (!link) {
         router.replace("/setup");
       }
+      if (items.length === 0) {
+        fetchMedia();
+      }
     })();
-
-    if (items.length === 0) {
-      setItems([
-        {
-          id: "1",
-          name: "De Code Van Coppens",
-          type: "Serie",
-          platform: "VTMgo",
-          schedule: "elke woensdag",
-          status: "Watching",
-          priority: "High",
-        },
-        {
-          id: "2",
-          name: "Modern Family",
-          type: "Serie",
-          platform: "123movies",
-          schedule: "",
-          status: "Watching",
-          priority: "Medium",
-        },
-        {
-          id: "3",
-          name: "Average Rob",
-          type: "Youtube",
-          platform: "youtube",
-          schedule: ".",
-          status: "Watched",
-          priority: "Medium",
-        },
-        {
-          id: "4",
-          name: "buncharted",
-          type: "Youtube",
-          platform: "youtube",
-          schedule: ".",
-          status: "Watched",
-          priority: "Low",
-        },
-      ]);
-    }
   }, []);
 
   const toggleFilters = () => {

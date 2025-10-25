@@ -17,7 +17,7 @@ export default function SetupScreen() {
   }, []);
 
   const handleSave = async () => {
-    if (!url.startsWith("https://docs.google.com/spreadsheets/")) {
+    if (!url.startsWith("https://script.google.com/macros")) {
       alert("Please enter a valid Google Sheets link");
       return;
     }
