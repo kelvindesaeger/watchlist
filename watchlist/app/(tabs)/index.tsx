@@ -1,4 +1,4 @@
-import { clearSheetUrl, getSheetUrl } from "@/utils/storage";
+import { getSheetUrl } from "@/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "@react-navigation/elements";
 import { useTheme } from "@react-navigation/native";
@@ -6,7 +6,6 @@ import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Button,
   Easing,
   FlatList,
   StyleSheet,
@@ -187,15 +186,6 @@ export default function HomeScreen() {
         ]}
         value={search}
         onChangeText={setSearch}
-      />
-
-      {/* temp delete button for spreadsheet */}
-      <Button
-        title="Change Spreadsheet"
-        onPress={() => {
-          clearSheetUrl();
-          router.replace("/setup");
-        }}
       />
 
       <FlatList

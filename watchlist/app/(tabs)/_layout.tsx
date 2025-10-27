@@ -19,11 +19,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="graphs"
+        name="settings"
         options={{
-          title: "Stats",
+          title: "Settings",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="bar-chart" color={color} size={size} />
+            <MaterialIcons name="settings" color={color} size={size} />
           ),
         }}
       />
