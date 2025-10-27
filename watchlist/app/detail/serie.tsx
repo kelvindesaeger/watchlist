@@ -2,9 +2,10 @@ import FormField from "@/components/formFields/FormField";
 import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useMediaApi } from "@/hooks/useMediaApi";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import {
   Button,
   Image,
@@ -27,24 +28,6 @@ export default function SerieDetail() {
 
   const serie = items.find((i) => String(i.id) === id && i.type === "Serie");
 
-  const [form, setForm] = useState({
-    name: serie?.name || "",
-    platform: serie?.platform || "",
-    schedule: serie?.schedule || "",
-    season: serie?.season || "",
-    episode: serie?.episode || "",
-    current_season: serie?.current_season || "1",
-    current_episode: serie?.current_episode || "1",
-    status: serie?.status || "Watching",
-    priority: serie?.priority || "Medium",
-    notes: serie?.notes || "",
-  });
-
-  const handleSave = async () => {
-    console.log("Form data:", form);
-    router.replace("/"); // Go back to app
-  };
-
   useLayoutEffect(() => {
     if (serie) {
       navigation.setOptions({ title: serie.name });
@@ -52,6 +35,52 @@ export default function SerieDetail() {
       navigation.setOptions({ title: "Serie Detail" });
     }
   }, [navigation, serie]);
+
+  /*
+  Form logic
+  */
+  const [isDataChanged, setIsDataChanged] = useState(false);
+  const { updateMedia } = useMediaApi();
+
+  const [form, setForm] = useState({
+    id: serie?.id || "",
+    name: serie?.name || "",
+    type: serie?.type || "", //TODO: add field movie/serie
+    platform: serie?.platform || "",
+    schedule: serie?.schedule || "",
+    season: serie?.season || 1,
+    episode: serie?.episode || 1,
+    current_season: serie?.current_season || 1,
+    current_episode: serie?.current_episode || 1,
+    status: serie?.status || "Watching",
+    priority: serie?.priority || "Medium",
+    notes: serie?.notes || "",
+  });
+
+  useEffect(() => {
+    if (!serie) return;
+    const hasChanged =
+      form.name !== serie.name ||
+      form.platform !== serie.platform ||
+      form.schedule !== serie.schedule ||
+      form.season !== serie.season ||
+      form.episode !== serie.episode ||
+      form.current_season !== serie.current_season ||
+      form.current_episode !== serie.current_episode ||
+      form.status !== serie.status ||
+      form.priority !== serie.priority ||
+      form.notes !== serie.notes;
+    setIsDataChanged(hasChanged);
+  }, [form]);
+
+  const handleSave = async () => {
+    if (isDataChanged && serie) {
+      console.log("Form data:", form);
+      form.id = serie.id;
+      updateMedia(form);
+      router.replace("/"); // Go back to app
+    }
+  };
 
   if (!serie)
     return (
@@ -103,21 +132,21 @@ export default function SerieDetail() {
         <FormField
           label="Season"
           value={form.season}
-          onChange={(text: string) => setForm({ ...form, season: text })}
+          onChange={(text: number) => setForm({ ...form, season: text })}
           colors={colors}
           style={styles(colorScheme, colors).input}
         />
         <FormField
           label="Episode"
           value={form.episode}
-          onChange={(text: string) => setForm({ ...form, episode: text })}
+          onChange={(text: number) => setForm({ ...form, episode: text })}
           colors={colors}
           style={styles(colorScheme, colors).input}
         />
         <FormPicker
           label="Current Season"
           selectedValue={form.current_season}
-          onValueChange={(value: string) =>
+          onValueChange={(value: number) =>
             setForm({ ...form, current_season: value })
           }
           options={[
@@ -131,7 +160,7 @@ export default function SerieDetail() {
         <FormPicker
           label="Current Episode"
           selectedValue={form.current_episode}
-          onValueChange={(value: string) =>
+          onValueChange={(value: number) =>
             setForm({ ...form, current_episode: value })
           }
           options={[

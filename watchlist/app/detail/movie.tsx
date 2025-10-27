@@ -4,7 +4,7 @@ import FormTextArea from "@/components/formFields/FormTextArea";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import {
   Button,
   Image,
@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { useMedia } from "../../context/MediaContext";
+import { useMediaApi } from "../../hooks/useMediaApi";
 
 export default function MovieDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,8 +38,16 @@ export default function MovieDetail() {
     }
   }, [navigation, movie]);
 
+  /*
+  Form logic
+  */
+  const [isDataChanged, setIsDataChanged] = useState(false);
+  const { updateMedia } = useMediaApi();
+
   const [form, setForm] = useState({
+    id: movie?.id || "",
     name: movie?.name || "",
+    type: movie?.type || "", //TODO: add field movie/serie
     platform: movie?.platform || "",
     schedule: movie?.schedule || "",
     status: movie?.status || "Watching",
@@ -46,9 +55,26 @@ export default function MovieDetail() {
     notes: movie?.notes || "",
   });
 
+  useEffect(() => {
+    if (!movie) return;
+    const hasChanged =
+      form.name !== movie.name ||
+      form.platform !== movie.platform ||
+      form.type !== movie.type ||
+      form.schedule !== movie.schedule ||
+      form.status !== movie.status ||
+      form.priority !== movie.priority ||
+      form.notes !== movie.notes;
+    setIsDataChanged(hasChanged);
+  }, [form]);
+
   const handleSave = async () => {
-    console.log("Form data:", form);
-    router.replace("/"); // Go back to app
+    if (isDataChanged && movie) {
+      console.log("Form data:", form);
+      form.id = movie.id;
+      updateMedia(form);
+      router.replace("/"); // Go back to app
+    }
   };
 
   if (!movie) {
@@ -135,7 +161,12 @@ export default function MovieDetail() {
         />
       </ScrollView>
       <View style={{ padding: 16, backgroundColor: colors.background }}>
-        <Button title="Save" onPress={handleSave} />
+        <Button
+          title="Save"
+          onPress={handleSave}
+          disabled={!isDataChanged}
+          color={isDataChanged ? "" : "#888"}
+        />
       </View>
     </KeyboardAvoidingView>
   );

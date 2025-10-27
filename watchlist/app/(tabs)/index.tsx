@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MediaItem, useMedia } from "../../context/MediaContext";
-import { useFetchMedia } from "../../hooks/useFetchMedia";
+import { useMediaApi } from "../../hooks/useMediaApi";
 
 const TYPE_FILTERS = ["Serie", "Movie", "Video"];
 const STATUS_FILTERS = ["Watching", "Planned", "Watched"];
@@ -26,7 +26,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { items, setItems } = useMedia();
   const { colors } = useTheme();
-  const { fetchMedia } = useFetchMedia();
+  const { fetchMedia } = useMediaApi();
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
