@@ -77,7 +77,7 @@ export default function SerieDetail() {
     if (isDataChanged && serie) {
       console.log("Form data:", form);
       form.id = serie.id;
-      updateMedia(form);
+      await updateMedia(form);
       router.replace("/"); // Go back to app
     }
   };

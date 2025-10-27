@@ -72,7 +72,7 @@ export default function MovieDetail() {
     if (isDataChanged && movie) {
       console.log("Form data:", form);
       form.id = movie.id;
-      updateMedia(form);
+      await updateMedia(form);
       router.replace("/"); // Go back to app
     }
   };
