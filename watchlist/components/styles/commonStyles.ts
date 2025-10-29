@@ -49,4 +49,11 @@ export const createCommonStyles = (colorScheme: "light" | "dark", colors: any) =
       width: 100,
       marginTop: 12,
     },
+    searchInputFull: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        marginBottom: 12,
+    },
   });

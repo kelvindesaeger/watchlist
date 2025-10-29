@@ -165,7 +165,7 @@ export default function MovieDetail() {
           title="Save"
           onPress={handleSave}
           disabled={!isDataChanged}
-          color={isDataChanged ? "" : "#888"}
+          color={isDataChanged ? "#348512" : "#888"}
         />
       </View>
     </KeyboardAvoidingView>

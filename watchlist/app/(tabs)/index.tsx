@@ -91,17 +91,33 @@ export default function HomeScreen() {
         <Text style={[styles.header, { color: colors.text }]}>
           🎬 Media Tracker
         </Text>
-        <TouchableOpacity onPress={toggleFilters} style={styles.filterIcon}>
-          <Ionicons
-            name="funnel"
-            size={28}
-            color={
-              selectedTypes.length > 0 || selectedStatuses.length > 0
-                ? colors.primary // active color
-                : colors.text // default color
-            }
-          />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row" }}>
+          <TouchableOpacity onPress={toggleFilters} style={styles.filterIcon}>
+            <Ionicons
+              name="funnel"
+              size={28}
+              color={
+                selectedTypes.length > 0 || selectedStatuses.length > 0
+                  ? colors.primary // active color
+                  : colors.text // default color
+              }
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/addMedia")}
+            style={styles.filterIcon}
+          >
+            <Ionicons
+              name="add"
+              size={34}
+              color={
+                selectedTypes.length > 0 || selectedStatuses.length > 0
+                  ? colors.primary // active color
+                  : colors.text // default color
+              }
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Sliding filter panel */}

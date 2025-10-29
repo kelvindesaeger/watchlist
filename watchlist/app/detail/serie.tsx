@@ -49,8 +49,8 @@ export default function SerieDetail() {
     type: serie?.type || "",
     platform: serie?.platform || "",
     schedule: serie?.schedule || "",
-    season: serie?.season || 1,
-    episode: serie?.episode || 1,
+    season: String(serie?.season ?? "1"),
+    episode: String(serie?.episode ?? "1"),
     current_season: serie?.current_season || 1,
     current_episode: serie?.current_episode || 1,
     status: serie?.status || "Watching",
@@ -64,8 +64,8 @@ export default function SerieDetail() {
       form.name !== serie.name ||
       form.platform !== serie.platform ||
       form.schedule !== serie.schedule ||
-      form.season !== serie.season ||
-      form.episode !== serie.episode ||
+      form.season !== String(serie.season) ||
+      form.episode !== String(serie.episode) ||
       form.current_season !== serie.current_season ||
       form.current_episode !== serie.current_episode ||
       form.status !== serie.status ||
@@ -78,7 +78,13 @@ export default function SerieDetail() {
     if (isDataChanged && serie) {
       console.log("Form data:", form);
       form.id = serie.id;
-      await updateMedia(form);
+      var updatedMedia = {
+        ...form,
+        season: Number(form.season),
+        episode: Number(form.episode),
+      };
+      // console.log("Updated media data:", updatedMedia);
+      await updateMedia(updatedMedia);
       router.replace("/"); // Go back to app
     }
   };
@@ -134,13 +140,13 @@ export default function SerieDetail() {
         <FormField
           label="Season"
           value={form.season}
-          onChange={(text: number) => setForm({ ...form, season: text })}
+          onChange={(text: string) => setForm({ ...form, season: text })}
           style={styles.input}
         />
         <FormField
           label="Episode"
           value={form.episode}
-          onChange={(text: number) => setForm({ ...form, episode: text })}
+          onChange={(text: string) => setForm({ ...form, episode: text })}
           style={styles.input}
         />
         <FormPicker

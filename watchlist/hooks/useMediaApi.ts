@@ -22,7 +22,8 @@ export const useMediaApi = () => {
       body: JSON.stringify(newItem),
     });
     const added = await response.json();
-    setItems(prev => [...prev, added]);
+    newItem.id = added.id;
+    setItems(prev => [...prev, newItem]);
   };
 
   const updateMedia = async (updatedItem: MediaItem) => {
