@@ -20,6 +20,7 @@ import { MediaItem, useMedia } from "../../context/MediaContext";
 import { useMediaApi } from "../../hooks/useMediaApi";
 const TYPE_FILTERS = ["Serie", "Movie", "Video"];
 const STATUS_FILTERS = ["Watching", "Planned", "Watched"];
+const PRIORITY_FILTERS = ["Low", "Medium", "High"];
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function HomeScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -57,7 +59,7 @@ export default function HomeScreen() {
 
   const slideHeight = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 150], // bigger panel height
+    outputRange: [0, 220], // bigger panel height
   });
 
   const filteredItems: MediaItem[] = items
@@ -67,6 +69,11 @@ export default function HomeScreen() {
     )
     .filter((i) =>
       selectedStatuses.length > 0 ? selectedStatuses.includes(i.status!) : true
+    )
+    .filter((i) =>
+      selectedPriorities.length > 0
+        ? selectedPriorities.includes(i.priority!)
+        : true
     );
 
   const toggleSelection = (value: string, list: string[], setList: any) => {
@@ -166,6 +173,42 @@ export default function HomeScreen() {
                   }}
                 >
                   {status}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.filterTitle, { color: colors.text }]}>
+            Priority
+          </Text>
+          <View style={styles.filterOptions}>
+            {PRIORITY_FILTERS.map((priority) => (
+              <TouchableOpacity
+                key={priority}
+                style={[
+                  styles.filterOption,
+                  {
+                    backgroundColor: selectedPriorities.includes(priority)
+                      ? colors.primary
+                      : colors.card,
+                  },
+                ]}
+                onPress={() =>
+                  toggleSelection(
+                    priority,
+                    selectedPriorities,
+                    setSelectedPriorities
+                  )
+                }
+              >
+                <Text
+                  style={{
+                    color: selectedStatuses.includes(priority)
+                      ? colors.background
+                      : colors.text,
+                  }}
+                >
+                  {priority}
                 </Text>
               </TouchableOpacity>
             ))}
