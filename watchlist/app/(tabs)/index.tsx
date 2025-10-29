@@ -2,6 +2,7 @@ import { getSheetUrl } from "@/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "@react-navigation/elements";
 import { useTheme } from "@react-navigation/native";
+import { format, isValid, parseISO } from "date-fns";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -17,7 +18,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MediaItem, useMedia } from "../../context/MediaContext";
 import { useMediaApi } from "../../hooks/useMediaApi";
-
 const TYPE_FILTERS = ["Serie", "Movie", "Video"];
 const STATUS_FILTERS = ["Watching", "Planned", "Watched"];
 
@@ -207,7 +207,6 @@ export default function HomeScreen() {
             <View
               style={{
                 flexDirection: "row",
-                alignItems: "center",
                 justifyContent: "space-between",
               }}
             >
@@ -219,6 +218,7 @@ export default function HomeScreen() {
                 style={{
                   backgroundColor:
                     item.type === "Serie" ? "#4f83cc" : "#cc4f4f",
+                  alignSelf: "flex-start",
                 }}
               >
                 {item.type.toUpperCase()}
@@ -226,7 +226,10 @@ export default function HomeScreen() {
             </View>
             {item.schedule !== "." && (
               <Text style={[styles.type, { color: colors.text }]}>
-                {item.schedule}
+                {/* TODO: fix date format */}
+                {item.schedule && isValid(parseISO(item.schedule))
+                  ? format(item.schedule, "dd/MM/yyyy")
+                  : item.schedule}
               </Text>
             )}
             <Text style={[styles.type, { color: colors.text }]}>
@@ -291,6 +294,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
   },
-  title: { fontSize: 18, fontWeight: "bold" },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    overflow: "hidden",
+    flexShrink: 1,
+  },
   type: { fontSize: 14 },
 });

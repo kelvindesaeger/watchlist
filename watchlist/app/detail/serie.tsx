@@ -1,6 +1,7 @@
 import FormField from "@/components/formFields/FormField";
 import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
+import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useMediaApi } from "@/hooks/useMediaApi";
 import { useTheme } from "@react-navigation/native";
@@ -12,7 +13,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -23,6 +23,7 @@ export default function SerieDetail() {
   const { items } = useMedia();
   const colorScheme = useColorScheme() ?? "light";
   const { colors } = useTheme();
+  const styles = createCommonStyles(colorScheme, colors);
   const router = useRouter();
   const navigation = useNavigation();
 
@@ -45,7 +46,7 @@ export default function SerieDetail() {
   const [form, setForm] = useState({
     id: serie?.id || "",
     name: serie?.name || "",
-    type: serie?.type || "", //TODO: add field movie/serie
+    type: serie?.type || "",
     platform: serie?.platform || "",
     schedule: serie?.schedule || "",
     season: serie?.season || 1,
@@ -82,10 +83,7 @@ export default function SerieDetail() {
     }
   };
 
-  if (!serie)
-    return (
-      <Text style={styles(colorScheme, colors).text}>Serie not found</Text>
-    );
+  if (!serie) return <Text style={styles.text}>Serie not found</Text>;
 
   return (
     <KeyboardAvoidingView
@@ -94,17 +92,14 @@ export default function SerieDetail() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <ScrollView
-        style={[
-          styles(colorScheme, colors).container,
-          { backgroundColor: colors.background },
-        ]}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={{ paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
       >
         {serie.image && serie.image !== "." && (
           <Image
             source={{ uri: serie.image }}
-            style={styles(colorScheme, colors).image}
+            style={styles.image}
             resizeMode="contain"
           />
         )}
@@ -112,36 +107,41 @@ export default function SerieDetail() {
           label="Name"
           value={form.name}
           onChange={(text: string) => setForm({ ...form, name: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
+        />
+        <FormPicker
+          label="Type"
+          selectedValue={form.type}
+          onValueChange={(value: string) => setForm({ ...form, type: value })}
+          options={[
+            { label: "Serie", value: "Serie" },
+            { label: "Movie", value: "Movie" },
+          ]}
+          style={styles.picker}
         />
         <FormField
           label="Platform"
           value={form.platform}
           onChange={(text: string) => setForm({ ...form, platform: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
         <FormField
           label="Schedule"
           value={form.schedule}
           onChange={(text: string) => setForm({ ...form, schedule: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
         <FormField
           label="Season"
           value={form.season}
           onChange={(text: number) => setForm({ ...form, season: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
         <FormField
           label="Episode"
           value={form.episode}
           onChange={(text: number) => setForm({ ...form, episode: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
         <FormPicker
           label="Current Season"
@@ -154,8 +154,7 @@ export default function SerieDetail() {
             { label: "2", value: "2" },
             { label: "3", value: "3" },
           ]}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.picker}
         />
         <FormPicker
           label="Current Episode"
@@ -168,8 +167,7 @@ export default function SerieDetail() {
             { label: "2", value: "2" },
             { label: "3", value: "3" },
           ]}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.picker}
         />
         <FormPicker
           label="Status"
@@ -181,8 +179,7 @@ export default function SerieDetail() {
             { label: "Skipped", value: "Skipped" },
             { label: "Planned", value: "Planned" },
           ]}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.picker}
         />
         <FormPicker
           label="Priority"
@@ -195,53 +192,23 @@ export default function SerieDetail() {
             { label: "Medium", value: "Medium" },
             { label: "High", value: "High" },
           ]}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.picker}
         />
         <FormTextArea
           label="Notes"
           value={form.notes}
           onChange={(text: string) => setForm({ ...form, notes: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
       </ScrollView>
       <View style={{ padding: 16, backgroundColor: colors.background }}>
-        <Button title="Save" onPress={handleSave} />
+        <Button
+          title="Save"
+          onPress={handleSave}
+          disabled={!isDataChanged}
+          color={isDataChanged ? "" : "#888"}
+        />
       </View>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = (colorScheme: "light" | "dark", colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 16,
-    },
-    text: {
-      fontSize: 16,
-      marginBottom: 8,
-      color: colorScheme === "dark" ? "#fff" : "#000",
-    },
-    image: {
-      width: 200,
-      height: 300,
-      marginBottom: 16,
-      borderRadius: 8,
-    },
-    label: {
-      fontSize: 12,
-      color: colors.text,
-      marginBottom: 4,
-      fontWeight: "500",
-    },
-    input: {
-      borderWidth: 1,
-      borderRadius: 8,
-      padding: 12,
-      width: "100%",
-      color: colors.text,
-      borderColor: colors.border,
-    },
-  });

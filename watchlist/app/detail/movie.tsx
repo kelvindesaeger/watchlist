@@ -1,6 +1,7 @@
 import FormField from "@/components/formFields/FormField";
 import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
+import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
@@ -11,7 +12,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -23,6 +23,7 @@ export default function MovieDetail() {
   const { items } = useMedia();
   const colorScheme = useColorScheme() ?? "light";
   const { colors } = useTheme();
+  const styles = createCommonStyles(colorScheme, colors);
   const router = useRouter();
   const navigation = useNavigation();
 
@@ -47,7 +48,7 @@ export default function MovieDetail() {
   const [form, setForm] = useState({
     id: movie?.id || "",
     name: movie?.name || "",
-    type: movie?.type || "", //TODO: add field movie/serie
+    type: movie?.type || "",
     platform: movie?.platform || "",
     schedule: movie?.schedule || "",
     status: movie?.status || "Watching",
@@ -78,9 +79,7 @@ export default function MovieDetail() {
   };
 
   if (!movie) {
-    return (
-      <Text style={styles(colorScheme, colors).text}>Movie not found</Text>
-    );
+    return <Text style={styles.text}>Movie not found</Text>;
   }
 
   return (
@@ -90,17 +89,14 @@ export default function MovieDetail() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <ScrollView
-        style={[
-          styles(colorScheme, colors).container,
-          { backgroundColor: colors.background },
-        ]}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={{ paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
       >
         {movie.image && movie.image !== "." && (
           <Image
             source={{ uri: movie.image }}
-            style={styles(colorScheme, colors).image}
+            style={styles.image}
             resizeMode="contain"
           />
         )}
@@ -108,22 +104,29 @@ export default function MovieDetail() {
           label="Name"
           value={form.name}
           onChange={(text: string) => setForm({ ...form, name: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
+        />
+        <FormPicker
+          label="Type"
+          selectedValue={form.type}
+          onValueChange={(value: string) => setForm({ ...form, type: value })}
+          options={[
+            { label: "Movie", value: "Movie" },
+            { label: "Video", value: "Video" },
+          ]}
+          style={styles.picker}
         />
         <FormField
           label="Platform"
           value={form.platform}
           onChange={(text: string) => setForm({ ...form, platform: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
         <FormField
           label="Schedule"
           value={form.schedule}
           onChange={(text: string) => setForm({ ...form, schedule: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
         <FormPicker
           label="Status"
@@ -135,8 +138,7 @@ export default function MovieDetail() {
             { label: "Skipped", value: "Skipped" },
             { label: "Planned", value: "Planned" },
           ]}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.picker}
         />
         <FormPicker
           label="Priority"
@@ -149,15 +151,13 @@ export default function MovieDetail() {
             { label: "Medium", value: "Medium" },
             { label: "High", value: "High" },
           ]}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.picker}
         />
         <FormTextArea
           label="Notes"
           value={form.notes}
           onChange={(text: string) => setForm({ ...form, notes: text })}
-          colors={colors}
-          style={styles(colorScheme, colors).input}
+          style={styles.input}
         />
       </ScrollView>
       <View style={{ padding: 16, backgroundColor: colors.background }}>
@@ -171,37 +171,3 @@ export default function MovieDetail() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = (colorScheme: "light" | "dark", colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 16,
-    },
-    text: {
-      fontSize: 16,
-      marginBottom: 8,
-      color: colorScheme === "dark" ? "#fff" : "#000",
-    },
-    image: {
-      width: 200,
-      height: 300,
-      marginBottom: 16,
-      borderRadius: 8,
-      alignSelf: "center",
-    },
-    label: {
-      fontSize: 12,
-      color: colors.text,
-      marginBottom: 4,
-      fontWeight: "500",
-    },
-    input: {
-      borderWidth: 1,
-      borderRadius: 8,
-      padding: 12,
-      width: "100%",
-      color: colors.text,
-      borderColor: colors.border,
-    },
-  });
