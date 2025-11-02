@@ -10,6 +10,7 @@ const FormPicker = ({
   onValueChange,
   options,
   style,
+  placeholder,
 }: any) => {
   const colorScheme = useColorScheme() ?? "light";
   const { colors } = useTheme();
@@ -26,6 +27,13 @@ const FormPicker = ({
           style={{ color: colors.text }}
           dropdownIconColor={colors.text}
         >
+          {placeholder && (
+            <Picker.Item
+              label={placeholder}
+              value=""
+              color={colors.text + "55"}
+            />
+          )}
           {options.map((opt: any) => (
             <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
           ))}

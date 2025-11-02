@@ -15,7 +15,7 @@ const FormTextArea = ({ label, value, onChange, style }: any) => {
         value={value}
         onChangeText={onChange}
         multiline
-        style={[style, { flex: 1, height: 100, textAlignVertical: "top" }]} // top-align voor multiline
+        style={[style, { flex: 1, height: 200, textAlignVertical: "top" }]} // top-align voor multiline
       />
     </View>
   );

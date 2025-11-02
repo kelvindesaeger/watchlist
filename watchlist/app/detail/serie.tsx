@@ -1,3 +1,4 @@
+import CustomButton from "@/components/CustomButton";
 import FormField from "@/components/formFields/FormField";
 import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
@@ -8,7 +9,6 @@ import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
-  Button,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +26,8 @@ export default function SerieDetail() {
   const styles = createCommonStyles(colorScheme, colors);
   const router = useRouter();
   const navigation = useNavigation();
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const serie = items.find((i) => String(i.id) === id && i.type === "Serie");
 
@@ -46,6 +48,7 @@ export default function SerieDetail() {
   const [form, setForm] = useState({
     id: serie?.id || "",
     name: serie?.name || "",
+    image: serie?.image || "",
     type: serie?.type || "",
     platform: serie?.platform || "",
     schedule: serie?.schedule || "",
@@ -76,6 +79,7 @@ export default function SerieDetail() {
 
   const handleSave = async () => {
     if (isDataChanged && serie) {
+      setIsSaving(true);
       console.log("Form data:", form);
       form.id = serie.id;
       var updatedMedia = {
@@ -86,6 +90,7 @@ export default function SerieDetail() {
       // console.log("Updated media data:", updatedMedia);
       await updateMedia(updatedMedia);
       router.replace("/"); // Go back to app
+      setIsSaving(false);
     }
   };
 
@@ -113,6 +118,12 @@ export default function SerieDetail() {
           label="Name"
           value={form.name}
           onChange={(text: string) => setForm({ ...form, name: text })}
+          style={styles.input}
+        />
+        <FormField
+          label="Image URL"
+          value={form.image}
+          onChange={(text: string) => setForm({ ...form, image: text })}
           style={styles.input}
         />
         <FormPicker
@@ -208,11 +219,11 @@ export default function SerieDetail() {
         />
       </ScrollView>
       <View style={{ padding: 16, backgroundColor: colors.background }}>
-        <Button
-          title="Save"
+        <CustomButton
+          title={isSaving ? "Saving..." : "Save"}
           onPress={handleSave}
-          disabled={!isDataChanged}
-          color={isDataChanged ? "" : "#888"}
+          disabled={!isDataChanged || isSaving}
+          isLoading={isSaving}
         />
       </View>
     </KeyboardAvoidingView>

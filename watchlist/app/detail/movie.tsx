@@ -1,3 +1,4 @@
+import CustomButton from "@/components/CustomButton";
 import FormField from "@/components/formFields/FormField";
 import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
@@ -7,7 +8,6 @@ import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
-  Button,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +26,8 @@ export default function MovieDetail() {
   const styles = createCommonStyles(colorScheme, colors);
   const router = useRouter();
   const navigation = useNavigation();
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const movie = items.find(
     (i) => String(i.id) === id && (i.type === "Movie" || i.type === "Video")
@@ -48,6 +50,7 @@ export default function MovieDetail() {
   const [form, setForm] = useState({
     id: movie?.id || "",
     name: movie?.name || "",
+    image: movie?.image || "",
     type: movie?.type || "",
     platform: movie?.platform || "",
     schedule: movie?.schedule || "",
@@ -71,10 +74,12 @@ export default function MovieDetail() {
 
   const handleSave = async () => {
     if (isDataChanged && movie) {
+      setIsSaving(true);
       console.log("Form data:", form);
       form.id = movie.id;
       await updateMedia(form);
       router.replace("/"); // Go back to app
+      setIsSaving(false);
     }
   };
 
@@ -84,12 +89,12 @@ export default function MovieDetail() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={{ backgroundColor: colors.background }}
         contentContainerStyle={{ paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
       >
@@ -104,6 +109,12 @@ export default function MovieDetail() {
           label="Name"
           value={form.name}
           onChange={(text: string) => setForm({ ...form, name: text })}
+          style={styles.input}
+        />
+        <FormField
+          label="Image URL"
+          value={form.image}
+          onChange={(text: string) => setForm({ ...form, image: text })}
           style={styles.input}
         />
         <FormPicker
@@ -161,11 +172,11 @@ export default function MovieDetail() {
         />
       </ScrollView>
       <View style={{ padding: 16, backgroundColor: colors.background }}>
-        <Button
-          title="Save"
+        <CustomButton
+          title={isSaving ? "Saving..." : "Save"}
           onPress={handleSave}
-          disabled={!isDataChanged}
-          color={isDataChanged ? "#348512" : "#888"}
+          disabled={!isDataChanged || isSaving}
+          isLoading={isSaving}
         />
       </View>
     </KeyboardAvoidingView>

@@ -1,6 +1,8 @@
+import CustomButton from "@/components/CustomButton";
 import FormField from "@/components/formFields/FormField";
 import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
+import Spinner from "@/components/Spinner";
 import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useMediaApi } from "@/hooks/useMediaApi";
 import { searchMediaByType } from "@/utils/searchMediaByType";
@@ -8,7 +10,6 @@ import { useTheme } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
-  Button,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -23,6 +24,7 @@ import {
 const initialForm = {
   id: "",
   name: "",
+  image: "",
   type: "",
   platform: "",
   schedule: "",
@@ -51,25 +53,36 @@ export default function AddMedia() {
 
   const [form, setForm] = useState(initialForm);
 
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [searchResults, setSearchResults] = useState<any[]>([]);
+
   const handleSearch = () => {
     // Implement search logic here
     console.log("Searching for:", search);
-    searchMediaByType(search, form.type).then((results) => {
-      console.log("Search results:", results);
-      if (results) {
-        setSearchResults([results]);
-      } else {
-        setSearchResults([]);
-      }
-    });
+    setIsSearching(true);
+    searchMediaByType(search, form.type)
+      .then((results) => {
+        console.log("Search results:", results);
+        if (results) {
+          setSearchResults([results]);
+        } else {
+          setSearchResults([]);
+        }
+      })
+      .finally(() => {
+        setIsSearching(false);
+      });
   };
 
   const handleSave = async () => {
     if (isDataChanged) {
+      setIsSaving(true);
       console.log("Form data:", form);
       await addMedia(form);
       router.replace("/"); // Go back to app
+      setIsSaving(false);
     }
   };
 
@@ -86,24 +99,25 @@ export default function AddMedia() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={{ backgroundColor: colors.background }}
         contentContainerStyle={{ paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
       >
         {/* selecting and searching a media item */}
         {form.name == "" && (
-          <View style={{ padding: 16 }}>
+          <View style={{ flex: 1 }}>
             <FormPicker
               label="What are you adding?"
               selectedValue={""}
               onValueChange={(value: string) => {
                 setForm({ ...form, type: value });
               }}
+              placeholder="Select type..."
               options={[
                 { label: "Serie", value: "Serie" },
                 { label: "Movie", value: "Movie" },
@@ -112,7 +126,7 @@ export default function AddMedia() {
               style={styles.picker}
             />
             {form.type != "" && form.type != "video" && (
-              <View>
+              <>
                 <TextInput
                   placeholder="Search by name..."
                   placeholderTextColor={colors.text + "88"}
@@ -127,37 +141,36 @@ export default function AddMedia() {
                   value={search}
                   onChangeText={setSearch}
                 />
-                <View
-                  style={{ padding: 16, backgroundColor: colors.background }}
-                >
-                  <Button
-                    title="Search media"
-                    onPress={handleSearch}
-                    disabled={search == ""}
-                    color={search != "" ? "#348512" : "#888"}
-                  />
-                </View>
-                {searchResults.length > 0 && (
-                  <View style={{ padding: 16 }}>
-                    <Text style={[styles.text, { marginBottom: 8 }]}>
-                      Search Results:
-                    </Text>
-                    {searchResults.map((item: any) => (
-                      <TouchableOpacity
-                        key={item.id}
+                <CustomButton
+                  title={isSearching ? "Searching..." : "Search media"}
+                  onPress={handleSearch}
+                  disabled={search === "" || isSearching}
+                />
+                {isSearching && <Spinner color={colors.text} />}
+                {searchResults.length > 0 &&
+                  searchResults.map((item: any) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={{
+                        marginTop: 12,
+                        padding: 12,
+                        backgroundColor: colors.card,
+                        borderRadius: 8,
+                      }}
+                      onPress={() => {
+                        console.log("Selected media item:", item);
+                        setForm({
+                          ...form,
+                          ...item,
+                        });
+                        setSearchResults([]);
+                      }}
+                    >
+                      <View
                         style={{
-                          marginBottom: 12,
-                          padding: 12,
-                          backgroundColor: colors.card,
-                          borderRadius: 8,
-                        }}
-                        onPress={() => {
-                          console.log("Selected media item:", item);
-                          setForm({
-                            ...form,
-                            ...item,
-                          });
-                          setSearchResults([]);
+                          display: "flex",
+                          flexDirection: "row",
+                          gap: 12,
                         }}
                       >
                         <Image
@@ -165,33 +178,45 @@ export default function AddMedia() {
                           style={{ width: 100, height: 150, marginBottom: 8 }}
                           resizeMode="cover"
                         />
-                        <Text
-                          style={[
-                            styles.text,
-                            { fontSize: 16, fontWeight: "bold" },
-                          ]}
-                        >
-                          {item.name}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.text,
-                            { fontSize: 14, color: colors.text + "88" },
-                          ]}
-                        >
-                          {item.platform}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
+                        <View>
+                          <Text
+                            style={[
+                              styles.text,
+                              { fontSize: 16, fontWeight: "bold" },
+                            ]}
+                          >
+                            {item.name}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.text,
+                              { fontSize: 14, color: colors.text + "88" },
+                            ]}
+                          >
+                            {item.platform}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.text,
+                              { fontSize: 14, color: colors.text + "88" },
+                            ]}
+                          >
+                            Every {item.schedule}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.text, { fontSize: 14 }]}>
+                        {item.notes}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+              </>
             )}
           </View>
         )}
         {/* edit form once media item is selected  */}
         {form.name != "" && (
-          <View style={{ padding: 16 }}>
+          <View>
             <Text style={[styles.text, { fontSize: 20, marginBottom: 16 }]}>
               Adding: {form.name} ({form.type})
             </Text>
@@ -200,6 +225,12 @@ export default function AddMedia() {
               label="Name"
               value={form.name}
               onChange={(text: string) => setForm({ ...form, name: text })}
+              style={styles.input}
+            />
+            <FormField
+              label="Image URL"
+              value={form.image}
+              onChange={(text: string) => setForm({ ...form, image: text })}
               style={styles.input}
             />
             <FormField
@@ -238,11 +269,13 @@ export default function AddMedia() {
                   onValueChange={(value: number) =>
                     setForm({ ...form, current_season: value })
                   }
-                  options={[
-                    { label: "1", value: "1" },
-                    { label: "2", value: "2" },
-                    { label: "3", value: "3" },
-                  ]}
+                  options={Array.from(
+                    { length: Number(form.season) || 1 },
+                    (_, i) => ({
+                      label: (i + 1).toString(),
+                      value: i + 1,
+                    })
+                  )}
                   style={styles.picker}
                 />
                 <FormPicker
@@ -267,10 +300,10 @@ export default function AddMedia() {
                 setForm({ ...form, status: value })
               }
               options={[
+                { label: "Planned", value: "Planned" },
                 { label: "Watching", value: "Watching" },
                 { label: "Watched", value: "Watched" },
                 { label: "Skipped", value: "Skipped" },
-                { label: "Planned", value: "Planned" },
               ]}
               style={styles.picker}
             />
@@ -297,14 +330,12 @@ export default function AddMedia() {
         )}
       </ScrollView>
       {form.name != "" && (
-        <View style={{ padding: 16, backgroundColor: colors.background }}>
-          <Button
-            title="Save"
-            onPress={handleSave}
-            disabled={!isDataChanged}
-            color={isDataChanged ? "" : "#888"}
-          />
-        </View>
+        <CustomButton
+          title={isSaving ? "Saving..." : "Save"}
+          onPress={handleSave}
+          disabled={!isDataChanged || isSaving}
+          isLoading={isSaving}
+        />
       )}
     </KeyboardAvoidingView>
   );

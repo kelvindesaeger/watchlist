@@ -1,3 +1,4 @@
+import Spinner from "@/components/Spinner";
 import { getSheetUrl } from "@/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "@react-navigation/elements";
@@ -30,8 +31,11 @@ export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([
+    "Watching",
+  ]);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -42,7 +46,14 @@ export default function HomeScreen() {
         router.replace("/setup");
       }
       if (items.length === 0) {
-        fetchMedia();
+        setIsLoading(true);
+        try {
+          await fetchMedia();
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
       }
     })();
   }, []);
@@ -246,70 +257,77 @@ export default function HomeScreen() {
         value={search}
         onChangeText={setSearch}
       />
-
-      <FlatList
-        contentContainerStyle={{ paddingBottom: 16 }}
-        data={filteredItems}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.item,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-            onPress={() => {
-              const path =
-                item.type === "Serie" ? "/detail/serie" : "/detail/movie";
-              router.push({ pathname: path, params: { id: item.id } });
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
+      {isLoading ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Spinner color={colors.text} />
+        </View>
+      ) : (
+        <FlatList
+          contentContainerStyle={{ paddingBottom: 16 }}
+          data={filteredItems}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.item,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                const path =
+                  item.type === "Serie" ? "/detail/serie" : "/detail/movie";
+                router.push({ pathname: path, params: { id: item.id } });
               }}
             >
-              <Text style={[styles.title, { color: colors.text }]}>
-                {item.name}
-              </Text>
-              <Badge
-                visible
+              <View
                 style={{
-                  backgroundColor:
-                    item.type === "Serie" ? "#4f83cc" : "#cc4f4f",
-                  alignSelf: "flex-start",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
                 }}
               >
-                {item.type.toUpperCase()}
-              </Badge>
-            </View>
-            {item.schedule !== "." && (
-              <Text style={[styles.type, { color: colors.text }]}>
-                {/* TODO: fix date format */}
-                {item.schedule && isValid(parseISO(item.schedule))
-                  ? format(item.schedule, "dd/MM/yyyy")
-                  : item.schedule}
-              </Text>
-            )}
-            <Text style={[styles.type, { color: colors.text }]}>
-              Status: {item.status}
-            </Text>
-            {item.priority !== "." && (
-              <Text style={[styles.type, { color: colors.text }]}>
-                Priority: {item.priority}
-              </Text>
-            )}
-            {item.current_season &&
-              item.current_season > 0 &&
-              item.current_episode &&
-              item.current_episode > 0 && (
+                <Text style={[styles.title, { color: colors.text }]}>
+                  {item.name}
+                </Text>
+                <Badge
+                  visible
+                  style={{
+                    backgroundColor:
+                      item.type === "Serie" ? "#4f83cc" : "#cc4f4f",
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {item.type.toUpperCase()}
+                </Badge>
+              </View>
+              {item.schedule !== "." && (
                 <Text style={[styles.type, { color: colors.text }]}>
-                  {`S${item.current_season} E${item.current_episode}`}
+                  {/* TODO: fix date format */}
+                  {item.schedule && isValid(parseISO(item.schedule))
+                    ? format(item.schedule, "dd/MM/yyyy")
+                    : item.schedule}
                 </Text>
               )}
-          </TouchableOpacity>
-        )}
-      />
+              <Text style={[styles.type, { color: colors.text }]}>
+                Status: {item.status}
+              </Text>
+              {item.priority !== "." && (
+                <Text style={[styles.type, { color: colors.text }]}>
+                  Priority: {item.priority}
+                </Text>
+              )}
+              {item.current_season &&
+                item.current_season > 0 &&
+                item.current_episode &&
+                item.current_episode > 0 && (
+                  <Text style={[styles.type, { color: colors.text }]}>
+                    {`S${item.current_season} E${item.current_episode}`}
+                  </Text>
+                )}
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }

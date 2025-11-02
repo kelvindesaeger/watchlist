@@ -56,4 +56,26 @@ export const createCommonStyles = (colorScheme: "light" | "dark", colors: any) =
         borderWidth: 1,
         marginBottom: 12,
     },
+    button: {
+      backgroundColor: "#348512",
+      paddingVertical: 12,
+      borderRadius: 8,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    buttonDisabled: {
+      backgroundColor: "#ccc",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    buttonText: {
+      color: "#000",
+      fontWeight: "bold",
+      fontSize: 16,
+    },
+    buttonTextDisabled: {
+      color: "#888",
+    },
   });
