@@ -15,6 +15,7 @@ import {
   Text,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { useMedia } from "../../context/MediaContext";
 import { useMediaApi } from "../../hooks/useMediaApi";
 
@@ -30,7 +31,7 @@ export default function MovieDetail() {
   const [isSaving, setIsSaving] = useState(false);
 
   const movie = items.find(
-    (i) => String(i.id) === id && (i.type === "Movie" || i.type === "Video")
+    (i) => String(i.id) === id && (i.type === "Movie" || i.type === "Video"),
   );
 
   useLayoutEffect(() => {
@@ -72,14 +73,29 @@ export default function MovieDetail() {
     setIsDataChanged(hasChanged);
   }, [form]);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (isDataChanged && movie) {
       setIsSaving(true);
       console.log("Form data:", form);
       form.id = movie.id;
-      await updateMedia(form);
-      router.replace("/"); // Go back to app
-      setIsSaving(false);
+      updateMedia(form)
+        .then(() => {
+          Toast.show({
+            type: "success",
+            text1: "Success",
+            text2: "Movie/Video updated successfully",
+          });
+          router.replace("/"); // Go back to app
+        })
+        .catch((error) => {
+          console.error("Error updating media:", error);
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Failed to update movie/video",
+          });
+        })
+        .finally(() => setIsSaving(false));
     }
   };
 

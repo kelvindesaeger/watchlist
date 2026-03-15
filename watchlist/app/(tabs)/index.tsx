@@ -76,20 +76,20 @@ export default function HomeScreen() {
   const filteredItems: MediaItem[] = items
     .filter((i) => i.name.toLowerCase().includes(search.toLowerCase().trim()))
     .filter((i) =>
-      selectedTypes.length > 0 ? selectedTypes.includes(i.type) : true
+      selectedTypes.length > 0 ? selectedTypes.includes(i.type) : true,
     )
     .filter((i) =>
-      selectedStatuses.length > 0 ? selectedStatuses.includes(i.status!) : true
+      selectedStatuses.length > 0 ? selectedStatuses.includes(i.status!) : true,
     )
     .filter((i) =>
       selectedPriorities.length > 0
         ? selectedPriorities.includes(i.priority!)
-        : true
+        : true,
     );
 
   const toggleSelection = (value: string, list: string[], setList: any) => {
     setList(
-      list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
+      list.includes(value) ? list.filter((v) => v !== value) : [...list, value],
     );
   };
 
@@ -224,7 +224,7 @@ export default function HomeScreen() {
                   toggleSelection(
                     priority,
                     selectedPriorities,
-                    setSelectedPriorities
+                    setSelectedPriorities,
                   )
                 }
               >

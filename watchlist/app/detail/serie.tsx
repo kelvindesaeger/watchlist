@@ -21,6 +21,7 @@ import {
   Text,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { useMedia } from "../../context/MediaContext";
 
 export default function SerieDetail() {
@@ -74,7 +75,7 @@ export default function SerieDetail() {
     setIsDataChanged(hasChanged);
   }, [form]);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (isDataChanged && serie) {
       setIsSaving(true);
       console.log("Form data:", form);
@@ -84,9 +85,23 @@ export default function SerieDetail() {
         season: Number(form.season),
         episode: form.episode,
       };
-      await updateMedia(updatedMedia);
-      router.replace("/"); // Go back to app
-      setIsSaving(false);
+      updateMedia(updatedMedia)
+        .then(() => {
+          Toast.show({
+            type: "success",
+            text1: "Success",
+            text2: "Serie updated successfully",
+          });
+          router.replace("/"); // Go back to app
+        })
+        .catch((error) => {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Failed to update serie",
+          });
+        })
+        .finally(() => setIsSaving(false));
     }
   };
 

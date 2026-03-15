@@ -25,6 +25,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 const initialForm = {
   id: "",
@@ -74,13 +75,45 @@ export default function AddMedia() {
       });
   };
 
-  const handleSave = async () => {
+  const validateForm = () => {
+    if (!form.name.trim()) {
+      Toast.show({ type: "error", text1: "Name is required" });
+      return false;
+    }
+    if (!form.type.trim()) {
+      Toast.show({ type: "error", text1: "Type is required" });
+      return false;
+    }
+    if (form.season <= 0 || form.current_season <= 0) {
+      Toast.show({ type: "error", text1: "Season must be positive" });
+      return false;
+    }
+    if (
+      form.type !== "video" &&
+      (parseInt(form.episode) <= 0 || form.current_episode <= 0)
+    ) {
+      Toast.show({ type: "error", text1: "Episode must be positive" });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSave = () => {
+    if (!validateForm()) return;
     if (isDataChanged) {
       setIsSaving(true);
       console.log("Form data:", form);
-      await addMedia(form);
-      router.replace("/"); // Go back to app
-      setIsSaving(false);
+      addMedia(form)
+        .then(() => {
+          Toast.show({ type: "success", text1: "Media added successfully" });
+          router.replace("/"); // Go back to app
+        })
+        .catch((error) => {
+          Toast.show({ type: "error", text1: "Failed to add media" });
+        })
+        .finally(() => {
+          setIsSaving(false);
+        });
     }
   };
 
