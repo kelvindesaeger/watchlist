@@ -1,7 +1,7 @@
 export const parseEpisodeString = (episode?: string): number[] => {
   if (!episode) return [1];
   return episode
-    .split(",")
+    .split(";")
     .map((e) => parseInt(e.trim()))
     .filter((n) => !isNaN(n) && n > 0);
 };

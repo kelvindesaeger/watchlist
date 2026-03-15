@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 
-export const createCommonStyles = (colorScheme: "light" | "dark", colors: any) =>
+export const createCommonStyles = (
+  colorScheme: "light" | "dark",
+  colors: any,
+) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -50,11 +53,11 @@ export const createCommonStyles = (colorScheme: "light" | "dark", colors: any) =
       marginTop: 12,
     },
     searchInputFull: {
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-        borderWidth: 1,
-        marginBottom: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginBottom: 12,
     },
     button: {
       backgroundColor: "#348512",

@@ -27,11 +27,11 @@ export async function searchMediaByType(
 
         const totalSeasons = Object.keys(seasonMap).length;
 
-        // convert to "10,8,12"
+        // convert to "10;8;12"
         const episodeString = Object.keys(seasonMap)
           .sort((a, b) => Number(a) - Number(b))
           .map((s) => seasonMap[Number(s)])
-          .join(",");
+          .join(";");
 
         const mediaItem: MediaItem = {
           id: ".",

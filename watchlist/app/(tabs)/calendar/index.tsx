@@ -3,11 +3,17 @@ import { useMedia } from "@/context/MediaContext";
 import { useMediaApi } from "@/hooks/useMediaApi";
 import { useTheme } from "@react-navigation/native";
 import { addDays, endOfMonth, format, startOfMonth } from "date-fns";
-import { useRouter } from "expo-router";
-import React, { useEffect, useMemo } from "react";
+import { useNavigation, useRouter } from "expo-router";
+import React, { useEffect, useLayoutEffect, useMemo } from "react";
 import { Text, useColorScheme, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const legendItems = [
+  { label: "Series", color: "#4f83cc" },
+  { label: "Movies", color: "#cc4f4f" },
+  { label: "Videos", color: "#4fcc7a" },
+];
 
 const weekdayMap: Record<string, number> = {
   Sunday: 0,
@@ -19,7 +25,7 @@ const weekdayMap: Record<string, number> = {
   Saturday: 6,
 };
 
-function getDatesForWeekday(weekday: number, baseDate = new Date()) {
+const getDatesForWeekday = (weekday: number, baseDate = new Date()) => {
   const start = startOfMonth(baseDate);
   const end = endOfMonth(baseDate);
 
@@ -35,7 +41,7 @@ function getDatesForWeekday(weekday: number, baseDate = new Date()) {
   }
 
   return dates;
-}
+};
 
 export default function CalendarScreen() {
   const colorScheme = useColorScheme() ?? "light";
@@ -44,6 +50,11 @@ export default function CalendarScreen() {
   const { fetchMedia } = useMediaApi();
   const { items, setItems } = useMedia();
   const router = useRouter();
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: "Calendar" });
+  }, [navigation]);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -90,10 +101,6 @@ export default function CalendarScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <Text style={[styles.text, { fontSize: 22, fontWeight: "bold" }]}>
-        Calendar
-      </Text>
-
       <Calendar
         markingType="multi-dot"
         markedDates={markedDates}
@@ -103,7 +110,7 @@ export default function CalendarScreen() {
           dayTextColor: colors.text,
           monthTextColor: colors.text,
           arrowColor: colors.text,
-          todayTextColor: colors.primary,
+          todayTextColor: "#ff0000",
         }}
         onDayPress={(day) => {
           router.push({
@@ -114,41 +121,28 @@ export default function CalendarScreen() {
         firstDay={1}
       />
 
-      {/* Optional legend */}
       <View style={{ marginTop: 16 }}>
-        <Text style={[styles.text, { fontWeight: "500" }]}>Legend:</Text>
-        <View style={{ flexDirection: "row", marginTop: 4 }}>
+        {legendItems.map((item) => (
           <View
+            key={item.label}
             style={{
-              width: 12,
-              height: 12,
-              backgroundColor: "#4f83cc",
-              borderRadius: 6,
-              marginRight: 6,
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 4,
             }}
-          />
-          <Text style={[styles.text]}>Series</Text>
-          <View
-            style={{
-              width: 12,
-              height: 12,
-              backgroundColor: "#cc4f4f",
-              borderRadius: 6,
-              marginHorizontal: 6,
-            }}
-          />
-          <Text style={[styles.text]}>Movies</Text>
-          <View
-            style={{
-              width: 12,
-              height: 12,
-              backgroundColor: "#4fcc7a",
-              borderRadius: 6,
-              marginHorizontal: 6,
-            }}
-          />
-          <Text style={[styles.text]}>Videos</Text>
-        </View>
+          >
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: item.color,
+                marginRight: 6,
+              }}
+            />
+            <Text style={[styles.text]}>{item.label}</Text>
+          </View>
+        ))}
       </View>
     </SafeAreaView>
   );

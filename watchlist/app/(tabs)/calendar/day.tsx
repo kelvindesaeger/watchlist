@@ -1,23 +1,22 @@
 import { useMedia } from "@/context/MediaContext";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@react-navigation/native";
 import { format, parseISO } from "date-fns";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  FlatList,
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLayoutEffect } from "react";
+import { FlatList, SafeAreaView, Text, TouchableOpacity } from "react-native";
 
 export default function DayDetailScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { date } = useLocalSearchParams();
   const { items } = useMedia();
+  const navigation = useNavigation();
 
   const formattedDate = format(parseISO(date as string), "EEEE, MMMM d, yyyy");
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: formattedDate });
+  }, [navigation]);
 
   // Filter media items that match this date
   const weekday = format(parseISO(date as string), "EEEE");
@@ -31,22 +30,6 @@ export default function DayDetailScreen() {
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}
     >
-      {/* Header */}
-      <View
-        style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{ marginRight: 12 }}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 22, fontWeight: "bold", color: colors.text }}>
-          {formattedDate}
-        </Text>
-      </View>
-
-      {/* Content */}
       {mediaForDate.length === 0 ? (
         <Text style={{ color: colors.text, opacity: 0.6 }}>
           No media scheduled.
