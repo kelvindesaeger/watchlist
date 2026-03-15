@@ -5,9 +5,14 @@ import FormTextArea from "@/components/formFields/FormTextArea";
 import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useMediaApi } from "@/hooks/useMediaApi";
+import {
+  getEpisodeOptions,
+  getSeasonOptions,
+  parseEpisodeString,
+} from "@/utils/episodeUtils";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -26,24 +31,12 @@ export default function SerieDetail() {
   const styles = createCommonStyles(colorScheme, colors);
   const router = useRouter();
   const navigation = useNavigation();
-
-  const [isSaving, setIsSaving] = useState(false);
+  const { updateMedia } = useMediaApi();
 
   const serie = items.find((i) => String(i.id) === id && i.type === "Serie");
 
-  useLayoutEffect(() => {
-    if (serie) {
-      navigation.setOptions({ title: serie.name });
-    } else {
-      navigation.setOptions({ title: "Serie Detail" });
-    }
-  }, [navigation, serie]);
-
-  /*
-  Form logic
-  */
+  const [isSaving, setIsSaving] = useState(false);
   const [isDataChanged, setIsDataChanged] = useState(false);
-  const { updateMedia } = useMediaApi();
 
   const [form, setForm] = useState({
     id: serie?.id || "",
@@ -60,6 +53,10 @@ export default function SerieDetail() {
     priority: serie?.priority || "Medium",
     notes: serie?.notes || "",
   });
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: serie ? serie.name : "Serie Detail" });
+  }, [navigation, serie]);
 
   useEffect(() => {
     if (!serie) return;
@@ -81,13 +78,12 @@ export default function SerieDetail() {
     if (isDataChanged && serie) {
       setIsSaving(true);
       console.log("Form data:", form);
-      form.id = serie.id;
       var updatedMedia = {
         ...form,
+        id: serie.id,
         season: Number(form.season),
-        episode: Number(form.episode),
+        episode: form.episode,
       };
-      // console.log("Updated media data:", updatedMedia);
       await updateMedia(updatedMedia);
       router.replace("/"); // Go back to app
       setIsSaving(false);
@@ -95,6 +91,21 @@ export default function SerieDetail() {
   };
 
   if (!serie) return <Text style={styles.text}>Serie not found</Text>;
+
+  const seasonEpisodes = useMemo(
+    () => parseEpisodeString(form.episode),
+    [form.episode],
+  );
+
+  const seasonOptions = useMemo(
+    () => getSeasonOptions(Number(form.season) || 1),
+    [seasonEpisodes, form.season],
+  );
+
+  const episodeOptions = useMemo(
+    () => getEpisodeOptions(seasonEpisodes, form.current_season),
+    [seasonEpisodes, form.current_season],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -164,13 +175,9 @@ export default function SerieDetail() {
           label="Current Season"
           selectedValue={form.current_season}
           onValueChange={(value: number) =>
-            setForm({ ...form, current_season: value })
+            setForm({ ...form, current_season: value, current_episode: 1 })
           }
-          options={[
-            { label: "1", value: "1" },
-            { label: "2", value: "2" },
-            { label: "3", value: "3" },
-          ]}
+          options={seasonOptions}
           style={styles.picker}
         />
         <FormPicker
@@ -179,11 +186,7 @@ export default function SerieDetail() {
           onValueChange={(value: number) =>
             setForm({ ...form, current_episode: value })
           }
-          options={[
-            { label: "1", value: "1" },
-            { label: "2", value: "2" },
-            { label: "3", value: "3" },
-          ]}
+          options={episodeOptions}
           style={styles.picker}
         />
         <FormPicker

@@ -5,10 +5,15 @@ import FormTextArea from "@/components/formFields/FormTextArea";
 import Spinner from "@/components/Spinner";
 import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useMediaApi } from "@/hooks/useMediaApi";
+import {
+  getEpisodeOptions,
+  getSeasonOptions,
+  parseEpisodeString,
+} from "@/utils/episodeUtils";
 import { searchMediaByType } from "@/utils/searchMediaByType";
 import { useTheme } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -29,7 +34,7 @@ const initialForm = {
   platform: "",
   schedule: "",
   season: 1,
-  episode: 1,
+  episode: "1",
   current_season: 1,
   current_episode: 1,
   status: "Planned",
@@ -42,24 +47,17 @@ export default function AddMedia() {
   const { colors } = useTheme();
   const styles = createCommonStyles(colorScheme, colors);
   const router = useRouter();
-
-  /*
-    Form logic
-  */
-  const [search, setSearch] = useState("");
-  const [isDataChanged, setIsDataChanged] = useState(false);
-  const { addMedia } = useMediaApi();
   const navigation = useNavigation();
+  const { addMedia } = useMediaApi();
 
   const [form, setForm] = useState(initialForm);
-
+  const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isDataChanged, setIsDataChanged] = useState(false);
 
   const handleSearch = () => {
-    // Implement search logic here
     console.log("Searching for:", search);
     setIsSearching(true);
     searchMediaByType(search, form.type)
@@ -88,7 +86,7 @@ export default function AddMedia() {
 
   useEffect(() => {
     const hasChanged = Object.keys(initialForm).some(
-      (key) => (form as any)[key] !== (initialForm as any)[key]
+      (key) => (form as any)[key] !== (initialForm as any)[key],
     );
     setIsDataChanged(hasChanged);
   }, [form]);
@@ -96,6 +94,21 @@ export default function AddMedia() {
   useLayoutEffect(() => {
     navigation.setOptions({ title: "Add New Record" });
   }, [navigation]);
+
+  const seasonEpisodes = useMemo(
+    () => parseEpisodeString(form.episode),
+    [form.episode],
+  );
+
+  const seasonOptions = useMemo(
+    () => getSeasonOptions(Number(form.season) || 1),
+    [seasonEpisodes, form.season],
+  );
+
+  const episodeOptions = useMemo(
+    () => getEpisodeOptions(seasonEpisodes, form.current_season),
+    [seasonEpisodes, form.current_season],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -258,7 +271,7 @@ export default function AddMedia() {
                 <FormField
                   label="Episode"
                   value={form.episode?.toString()}
-                  onChange={(text: number) =>
+                  onChange={(text: string) =>
                     setForm({ ...form, episode: text })
                   }
                   style={styles.input}
@@ -267,15 +280,13 @@ export default function AddMedia() {
                   label="Current Season"
                   selectedValue={form.current_season}
                   onValueChange={(value: number) =>
-                    setForm({ ...form, current_season: value })
-                  }
-                  options={Array.from(
-                    { length: Number(form.season) || 1 },
-                    (_, i) => ({
-                      label: (i + 1).toString(),
-                      value: i + 1,
+                    setForm({
+                      ...form,
+                      current_season: value,
+                      current_episode: 1,
                     })
-                  )}
+                  }
+                  options={seasonOptions}
                   style={styles.picker}
                 />
                 <FormPicker
@@ -284,11 +295,7 @@ export default function AddMedia() {
                   onValueChange={(value: number) =>
                     setForm({ ...form, current_episode: value })
                   }
-                  options={[
-                    { label: "1", value: "1" },
-                    { label: "2", value: "2" },
-                    { label: "3", value: "3" },
-                  ]}
+                  options={episodeOptions}
                   style={styles.picker}
                 />
               </>

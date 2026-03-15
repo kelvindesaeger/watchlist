@@ -10,7 +10,7 @@ export interface MediaItem {
   status?: string;
   priority?: string;
   season?: number;
-  episode?: number;
+  episode?: string;
   current_season?: number;
   current_episode?: number;
   notes?: string;

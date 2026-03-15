@@ -18,8 +18,20 @@ export async function searchMediaByType(
       if (res.ok) {
         const show = await res.json();
         const episodes = show._embedded?.episodes || [];
-        const totalSeasons = Math.max(...episodes.map((e: any) => e.season));
-        const totalEpisodes = episodes.length;
+
+        const seasonMap: Record<number, number> = {};
+
+        episodes.forEach((ep: any) => {
+          seasonMap[ep.season] = (seasonMap[ep.season] || 0) + 1;
+        });
+
+        const totalSeasons = Object.keys(seasonMap).length;
+
+        // convert to "10,8,12"
+        const episodeString = Object.keys(seasonMap)
+          .sort((a, b) => Number(a) - Number(b))
+          .map((s) => seasonMap[Number(s)])
+          .join(",");
 
         const mediaItem: MediaItem = {
           id: ".",
@@ -30,7 +42,7 @@ export async function searchMediaByType(
           status: show.status || "Unknown",
           priority: "Medium",
           season: totalSeasons,
-          episode: totalEpisodes,
+          episode: episodeString,
           current_season: 1,
           current_episode: 1,
           notes: show.summary ? show.summary.replace(/<[^>]*>?/gm, "") : ".",
@@ -61,7 +73,7 @@ export async function searchMediaByType(
           platform: "Cinema / Streaming",
           schedule: ".",
           season: -1,
-          episode: -1,
+          episode: "-1",
           current_season: -1,
           current_episode: -1,
           status: "Planned",
