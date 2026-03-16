@@ -174,6 +174,14 @@ export default function AddMedia() {
                   onPress={handleSearch}
                   disabled={search === "" || isSearching}
                 />
+                <View style={{ marginTop: 8 }}>
+                  <CustomButton
+                    title="Add Manually"
+                    onPress={() => {
+                      setForm({ ...form, name: "New_Item" });
+                    }}
+                  />
+                </View>
                 {isSearching && <Spinner color={colors.text} />}
                 {searchResults.length > 0 &&
                   searchResults.map((item: any) => (
