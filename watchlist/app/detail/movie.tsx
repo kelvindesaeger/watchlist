@@ -4,7 +4,8 @@ import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
 import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { toastError, toastSuccess } from "@/utils/toast";
+import { validateMediaForm } from "@/utils/mediaValidation";
+import { toastError, toastSuccess, toastWarning } from "@/utils/toast";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -74,6 +75,11 @@ export default function MovieDetail() {
   }, [form]);
 
   const handleSave = () => {
+    const result = validateMediaForm(form);
+    if (!result.valid) {
+      toastWarning(result.message);
+      return;
+    }
     if (isDataChanged && movie) {
       setIsSaving(true);
       console.log("Form data:", form);

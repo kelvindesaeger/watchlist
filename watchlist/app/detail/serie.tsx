@@ -10,16 +10,20 @@ import {
   getSeasonOptions,
   parseEpisodeString,
 } from "@/utils/episodeUtils";
-import { toastError, toastSuccess } from "@/utils/toast";
+import { validateMediaForm } from "@/utils/mediaValidation";
+import { toastError, toastSuccess, toastWarning } from "@/utils/toast";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useMedia } from "../../context/MediaContext";
@@ -76,6 +80,11 @@ export default function SerieDetail() {
   }, [form]);
 
   const handleSave = () => {
+    const result = validateMediaForm(form);
+    if (!result.valid) {
+      toastWarning(result.message);
+      return;
+    }
     if (isDataChanged && serie) {
       setIsSaving(true);
       console.log("Form data:", form);
@@ -173,7 +182,35 @@ export default function SerieDetail() {
           style={styles.input}
         />
         <FormField
-          label="Episode"
+          label={
+            <View style={{ flexDirection: "row", width: 100 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.text,
+                  fontWeight: "500",
+                  marginTop: 12,
+                }}
+              >
+                Episode
+              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    "Episode Format",
+                    "Use ';' to separate seasons.\n\nExample:\n4;12;8\n\nSeason 1 = 4 episodes\nSeason 2 = 12 episodes\nSeason 3 = 8 episodes",
+                  )
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={18}
+                  color={colors.text}
+                  style={{ marginLeft: 4, marginTop: 12 }}
+                />
+              </TouchableOpacity>
+            </View>
+          }
           value={form.episode}
           onChange={(text: string) => setForm({ ...form, episode: text })}
           style={styles.input}

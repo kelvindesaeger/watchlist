@@ -10,7 +10,11 @@ const FormField = ({ label, value, onChange, style }: any) => {
 
   return (
     <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      {typeof label === "string" ? (
+        <Text style={styles.fieldLabel}>{label}</Text>
+      ) : (
+        label
+      )}
       <TextInput value={value} onChangeText={onChange} style={style} />
     </View>
   );

@@ -10,8 +10,9 @@ import {
   getSeasonOptions,
   parseEpisodeString,
 } from "@/utils/episodeUtils";
+import { validateMediaForm } from "@/utils/mediaValidation";
 import { searchMediaByType } from "@/utils/searchMediaByType";
-import { toastError, toastSuccess } from "@/utils/toast";
+import { toastError, toastSuccess, toastWarning } from "@/utils/toast";
 import { useTheme } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
@@ -75,31 +76,12 @@ export default function AddMedia() {
       });
   };
 
-  const validateForm = () => {
-    if (!form.name.trim()) {
-      toastSuccess("Name is required");
-      return false;
-    }
-    if (!form.type.trim()) {
-      toastError("Type is required");
-      return false;
-    }
-    if (form.season <= 0 || form.current_season <= 0) {
-      toastError("Season must be positive");
-      return false;
-    }
-    if (
-      form.type !== "video" &&
-      (parseInt(form.episode) <= 0 || form.current_episode <= 0)
-    ) {
-      toastError("Episode must be positive");
-      return false;
-    }
-    return true;
-  };
-
   const handleSave = () => {
-    if (!validateForm()) return;
+    const result = validateMediaForm(form);
+    if (!result.valid) {
+      toastWarning(result.message);
+      return;
+    }
     if (isDataChanged) {
       setIsSaving(true);
       console.log("Form data:", form);
