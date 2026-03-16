@@ -59,6 +59,9 @@ export default function MovieDetail() {
     status: movie?.status || "Watching",
     priority: movie?.priority || "Medium",
     notes: movie?.notes || "",
+    category: movie?.category || "",
+    updated_on: movie?.updated_on || new Date().toISOString(),
+    rating: movie?.rating || 0,
   });
 
   useEffect(() => {
@@ -84,6 +87,7 @@ export default function MovieDetail() {
       setIsSaving(true);
       console.log("Form data:", form);
       form.id = movie.id;
+      form.updated_on = new Date().toISOString();
       updateMedia(form)
         .then(() => {
           toastSuccess("Movie/Video updated successfully");
@@ -182,6 +186,37 @@ export default function MovieDetail() {
           label="Notes"
           value={form.notes}
           onChange={(text: string) => setForm({ ...form, notes: text })}
+          style={styles.input}
+        />
+        <FormPicker
+          label="Category"
+          selectedValue={form.category}
+          onValueChange={(value: string) =>
+            setForm({ ...form, category: value })
+          }
+          options={[
+            { label: "Action", value: "Action" },
+            { label: "Comedy", value: "Comedy" },
+            { label: "Drama", value: "Drama" },
+            { label: "Fantasy", value: "Fantasy" },
+            { label: "Horror", value: "Horror" },
+            { label: "Romance", value: "Romance" },
+            { label: "Sci-Fi", value: "Sci-Fi" },
+            { label: "Vlaams", value: "Vlaams" },
+            { label: "Other", value: "Other" },
+          ]}
+          style={styles.picker}
+        />
+        <FormField
+          label="Updated On"
+          value={new Date(form.updated_on).toLocaleDateString()}
+          editable={false}
+          style={[styles.input, { backgroundColor: colors.card }]}
+        />
+        <FormField
+          label="Rating"
+          value={form.rating?.toString()}
+          onChange={(text: number) => setForm({ ...form, rating: text })}
           style={styles.input}
         />
       </ScrollView>

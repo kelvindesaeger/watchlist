@@ -57,6 +57,9 @@ export default function SerieDetail() {
     status: serie?.status || "Watching",
     priority: serie?.priority || "Medium",
     notes: serie?.notes || "",
+    category: serie?.category || "",
+    updated_on: serie?.updated_on || new Date().toISOString(),
+    rating: serie?.rating || 0,
   });
 
   useLayoutEffect(() => {
@@ -88,6 +91,7 @@ export default function SerieDetail() {
     if (isDataChanged && serie) {
       setIsSaving(true);
       console.log("Form data:", form);
+      form.updated_on = new Date().toISOString();
       var updatedMedia = {
         ...form,
         id: serie.id,
@@ -262,6 +266,37 @@ export default function SerieDetail() {
           label="Notes"
           value={form.notes}
           onChange={(text: string) => setForm({ ...form, notes: text })}
+          style={styles.input}
+        />
+        <FormPicker
+          label="Category"
+          selectedValue={form.category}
+          onValueChange={(value: string) =>
+            setForm({ ...form, category: value })
+          }
+          options={[
+            { label: "Action", value: "Action" },
+            { label: "Comedy", value: "Comedy" },
+            { label: "Drama", value: "Drama" },
+            { label: "Fantasy", value: "Fantasy" },
+            { label: "Horror", value: "Horror" },
+            { label: "Romance", value: "Romance" },
+            { label: "Sci-Fi", value: "Sci-Fi" },
+            { label: "Vlaams", value: "Vlaams" },
+            { label: "Other", value: "Other" },
+          ]}
+          style={styles.picker}
+        />
+        <FormField
+          label="Updated On"
+          value={new Date(form.updated_on).toLocaleDateString()}
+          editable={false}
+          style={[styles.input, { backgroundColor: colors.card }]}
+        />
+        <FormField
+          label="Rating"
+          value={form.rating?.toString()}
+          onChange={(text: number) => setForm({ ...form, rating: text })}
           style={styles.input}
         />
       </ScrollView>

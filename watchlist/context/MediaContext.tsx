@@ -15,6 +15,9 @@ export interface MediaItem {
   current_episode?: number;
   notes?: string;
   image?: string;
+  category?: string;
+  updated_on?: string;
+  rating?: number;
 }
 
 type MediaContextType = {

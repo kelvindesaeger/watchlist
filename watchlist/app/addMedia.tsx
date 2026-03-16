@@ -42,6 +42,9 @@ const initialForm = {
   status: "Planned",
   priority: "Medium",
   notes: "",
+  category: "",
+  updated_on: new Date().toISOString(),
+  rating: 0,
 };
 
 export default function AddMedia() {
@@ -85,6 +88,7 @@ export default function AddMedia() {
     if (isDataChanged) {
       setIsSaving(true);
       console.log("Form data:", form);
+      form.updated_on = new Date().toISOString();
       addMedia(form)
         .then(() => {
           toastSuccess("Media added successfully");
@@ -354,6 +358,37 @@ export default function AddMedia() {
               label="Notes"
               value={form.notes}
               onChange={(text: string) => setForm({ ...form, notes: text })}
+              style={styles.input}
+            />
+            <FormPicker
+              label="Category"
+              selectedValue={form.category}
+              onValueChange={(value: string) =>
+                setForm({ ...form, category: value })
+              }
+              options={[
+                { label: "Action", value: "Action" },
+                { label: "Comedy", value: "Comedy" },
+                { label: "Drama", value: "Drama" },
+                { label: "Fantasy", value: "Fantasy" },
+                { label: "Horror", value: "Horror" },
+                { label: "Romance", value: "Romance" },
+                { label: "Sci-Fi", value: "Sci-Fi" },
+                { label: "Vlaams", value: "Vlaams" },
+                { label: "Other", value: "Other" },
+              ]}
+              style={styles.picker}
+            />
+            <FormField
+              label="Updated On"
+              value={new Date(form.updated_on).toLocaleDateString()}
+              editable={false}
+              style={[styles.input, { backgroundColor: colors.card }]}
+            />
+            <FormField
+              label="Rating"
+              value={form.rating?.toString()}
+              onChange={(text: number) => setForm({ ...form, rating: text })}
               style={styles.input}
             />
           </View>
