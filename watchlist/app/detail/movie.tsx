@@ -4,6 +4,7 @@ import FormPicker from "@/components/formFields/FormPicker";
 import FormTextArea from "@/components/formFields/FormTextArea";
 import { createCommonStyles } from "@/components/styles/commonStyles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { toastError, toastSuccess } from "@/utils/toast";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -15,7 +16,6 @@ import {
   Text,
   View,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import { useMedia } from "../../context/MediaContext";
 import { useMediaApi } from "../../hooks/useMediaApi";
 
@@ -80,20 +80,12 @@ export default function MovieDetail() {
       form.id = movie.id;
       updateMedia(form)
         .then(() => {
-          Toast.show({
-            type: "success",
-            text1: "Success",
-            text2: "Movie/Video updated successfully",
-          });
+          toastSuccess("Movie/Video updated successfully");
           router.replace("/"); // Go back to app
         })
         .catch((error) => {
           console.error("Error updating media:", error);
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "Failed to update movie/video",
-          });
+          toastError("Failed to update movie/video");
         })
         .finally(() => setIsSaving(false));
     }

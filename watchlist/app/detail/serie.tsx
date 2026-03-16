@@ -10,6 +10,7 @@ import {
   getSeasonOptions,
   parseEpisodeString,
 } from "@/utils/episodeUtils";
+import { toastError, toastSuccess } from "@/utils/toast";
 import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
@@ -21,7 +22,6 @@ import {
   Text,
   View,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import { useMedia } from "../../context/MediaContext";
 
 export default function SerieDetail() {
@@ -87,19 +87,11 @@ export default function SerieDetail() {
       };
       updateMedia(updatedMedia)
         .then(() => {
-          Toast.show({
-            type: "success",
-            text1: "Success",
-            text2: "Serie updated successfully",
-          });
+          toastSuccess("Serie updated successfully");
           router.replace("/"); // Go back to app
         })
         .catch((error) => {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "Failed to update serie",
-          });
+          toastError("Failed to update serie");
         })
         .finally(() => setIsSaving(false));
     }
