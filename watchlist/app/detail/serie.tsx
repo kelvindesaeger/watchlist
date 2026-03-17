@@ -81,6 +81,7 @@ export default function SerieDetail() {
       form.status !== serie.status ||
       form.priority !== serie.priority ||
       form.notes !== serie.notes;
+    form.category !== serie.category || form.rating !== serie.rating;
     setIsDataChanged(hasChanged);
   }, [form]);
 
@@ -286,12 +287,15 @@ export default function SerieDetail() {
             { label: "Sci-Fi", value: "Sci-Fi" },
             { label: "Vlaams", value: "Vlaams" },
             { label: "Other", value: "Other" },
+            { label: "Reality", value: "Reality" },
+            { label: "Documentary", value: "Documentary" },
+            { label: "Sitcom", value: "Sitcom" },
           ]}
           style={styles.picker}
         />
         <FormField
           label="Updated On"
-          value={new Date(form.updated_on).toLocaleDateString()}
+          value={new Date(form.updated_on).toLocaleString("en-GB")}
           editable={false}
           style={[styles.input, { backgroundColor: colors.card }]}
         />
