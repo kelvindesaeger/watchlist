@@ -12,7 +12,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Movies",
+          title: "Media",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="movie" color={color} size={size} />
           ),

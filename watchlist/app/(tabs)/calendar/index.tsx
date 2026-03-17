@@ -3,9 +3,9 @@ import { useMedia } from "@/context/MediaContext";
 import { useMediaApi } from "@/hooks/useMediaApi";
 import { useTheme } from "@react-navigation/native";
 import { addDays, endOfMonth, format, startOfMonth } from "date-fns";
-import { useNavigation, useRouter } from "expo-router";
-import React, { useEffect, useLayoutEffect, useMemo } from "react";
-import { Text, useColorScheme, View } from "react-native";
+import { useRouter } from "expo-router";
+import React, { useEffect, useMemo } from "react";
+import { StyleSheet, Text, useColorScheme, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -50,11 +50,6 @@ export default function CalendarScreen() {
   const { fetchMedia } = useMediaApi();
   const { items, setItems } = useMedia();
   const router = useRouter();
-  const navigation = useNavigation();
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: "Calendar" });
-  }, [navigation]);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -99,8 +94,13 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[inlineStyles.container, { backgroundColor: colors.background }]}
     >
+      <View>
+        <Text style={[inlineStyles.header, { color: colors.text }]}>
+          📅 Calendar
+        </Text>
+      </View>
       <Calendar
         markingType="multi-dot"
         markedDates={markedDates}
@@ -147,3 +147,11 @@ export default function CalendarScreen() {
     </SafeAreaView>
   );
 }
+
+const inlineStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: { fontSize: 24, fontWeight: "bold", marginBottom: 8 },
+});

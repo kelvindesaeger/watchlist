@@ -70,6 +70,8 @@ export default function SerieDetail() {
     if (!serie) return;
     const hasChanged =
       form.name !== serie.name ||
+      form.image !== serie.image ||
+      form.type !== serie.type ||
       form.platform !== serie.platform ||
       form.schedule !== serie.schedule ||
       form.season !== String(serie.season) ||
