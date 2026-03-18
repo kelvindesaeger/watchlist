@@ -2,6 +2,7 @@ import FormPicker from "@/components/formFields/FormPicker";
 import Spinner from "@/components/Spinner";
 import { createCommonStyles } from "@/components/styles/commonStyles";
 import { getSheetUrl } from "@/utils/storage";
+import { toastError, toastSuccess } from "@/utils/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "@react-navigation/elements";
 import { useTheme } from "@react-navigation/native";
@@ -27,6 +28,7 @@ const TYPE_FILTERS = ["Serie", "Movie", "Video"];
 const STATUS_FILTERS = ["Watching", "Planned", "Watched"];
 const PRIORITY_FILTERS = ["Low", "Medium", "High"];
 const CATEGORY_FILTERS = [
+  "-",
   "Action",
   "Comedy",
   "Drama",
@@ -61,11 +63,13 @@ export default function HomeScreen() {
     "Watching",
   ]);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedSort, setSelectedSort] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("-");
+  const [selectedSort, setSelectedSort] = useState<string>("updated_on");
   const [isLoading, setIsLoading] = useState(false);
+  const [updatingItem, setUpdatingItem] = useState<MediaItem | null>(null);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const { updateMedia } = useMediaApi();
 
   useEffect(() => {
     (async () => {
@@ -114,7 +118,9 @@ export default function HomeScreen() {
         ? selectedPriorities.includes(i.priority!)
         : true,
     )
-    .filter((i) => (selectedCategory ? i.category === selectedCategory : true))
+    .filter((i) =>
+      selectedCategory !== "-" ? i.category === selectedCategory : true,
+    )
     .sort((a, b) => {
       switch (selectedSort) {
         case "alphabetical":
@@ -146,6 +152,22 @@ export default function HomeScreen() {
     );
   };
 
+  const onIncrement = (item: MediaItem) => {
+    setUpdatingItem(item);
+    item.current_episode = item.current_episode ? item.current_episode + 1 : 1;
+    updateMedia(item)
+      .then(() => {
+        toastSuccess("Progress updated successfully");
+        setItems((prev) =>
+          prev.map((i) => (i.id === item.id ? { ...i, ...item } : i)),
+        );
+      })
+      .catch((err) => {
+        toastError("Failed to update progress");
+      })
+      .finally(() => setUpdatingItem(null));
+  };
+
   return (
     <SafeAreaView
       style={[inlineStyles.container, { backgroundColor: colors.background }]}
@@ -155,16 +177,19 @@ export default function HomeScreen() {
         <Text style={[inlineStyles.header, { color: colors.text }]}>
           🎬 Media Tracker
         </Text>
-        <View style={{ flexDirection: "row" }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TouchableOpacity
             onPress={toggleFilters}
             style={inlineStyles.filterIcon}
           >
             <Ionicons
               name="funnel"
-              size={28}
+              size={24}
               color={
-                selectedTypes.length > 0 || selectedStatuses.length > 0
+                selectedTypes.length > 0 ||
+                selectedStatuses.length > 0 ||
+                selectedPriorities.length > 0 ||
+                selectedCategory
                   ? colors.primary // active color
                   : colors.text // default color
               }
@@ -288,7 +313,7 @@ export default function HomeScreen() {
               >
                 <Text
                   style={{
-                    color: selectedStatuses.includes(priority)
+                    color: selectedPriorities.includes(priority)
                       ? colors.background
                       : colors.text,
                   }}
@@ -312,14 +337,15 @@ export default function HomeScreen() {
           </View>
         </View>
       </Animated.View>
-
-      <FormPicker
-        label="Sort By"
-        selectedValue={selectedSort}
-        onValueChange={setSelectedSort}
-        options={[{ label: "None", value: "" }, ...SORT_OPTIONS]}
-        style={styles.picker}
-      />
+      <View style={{ marginBottom: -4 }}>
+        <FormPicker
+          label="Sort By"
+          selectedValue={selectedSort}
+          onValueChange={setSelectedSort}
+          options={[{ label: "None", value: "" }, ...SORT_OPTIONS]}
+          style={styles.picker}
+        />
+      </View>
 
       <TextInput
         placeholder="Search by name..."
@@ -342,83 +368,183 @@ export default function HomeScreen() {
           <Spinner color={colors.text} />
         </View>
       ) : (
-        <FlatList
-          contentContainerStyle={{ paddingBottom: 16 }}
-          data={filteredItems}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                inlineStyles.item,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-              onPress={() => {
-                const path =
-                  item.type === "Serie" ? "/detail/serie" : "/detail/movie";
-                router.push({ pathname: path, params: { id: item.id } });
+        <>
+          {filteredItems.length === 0 ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                {item.image ? (
-                  <Image
-                    source={{ uri: item.image }}
-                    style={{ width: 50, height: 75, marginRight: 12 }}
-                  />
-                ) : null}
-                <View
-                  style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text style={[inlineStyles.title, { color: colors.text }]}>
-                    {item.name}
-                  </Text>
-                  <Badge
-                    visible
-                    style={{
-                      backgroundColor:
-                        item.type === "Serie" ? "#4f83cc" : "#cc4f4f",
-                      alignSelf: "flex-start",
+              <Text style={{ color: colors.text }}>No media found</Text>
+            </View>
+          ) : (
+            <FlatList
+              contentContainerStyle={{ paddingBottom: 16 }}
+              data={filteredItems}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const episodeString =
+                  typeof item.episode === "string" ? item.episode : "";
+                const episodesPerSeason = episodeString.includes(";")
+                  ? episodeString.split(";").map(Number)
+                  : [];
+                const totalEpisodes = episodesPerSeason.reduce(
+                  (a, b) => a + b,
+                  0,
+                );
+                let watchedEpisodes = 0;
+                if (item.current_season && item.current_episode) {
+                  for (let i = 0; i < item.current_season - 1; i++) {
+                    watchedEpisodes += episodesPerSeason[i] || 0;
+                  }
+                  watchedEpisodes += item.current_episode;
+                }
+                const progress =
+                  totalEpisodes > 0 ? watchedEpisodes / totalEpisodes : 0;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      inlineStyles.item,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => {
+                      const path =
+                        item.type === "Serie"
+                          ? "/detail/serie"
+                          : "/detail/movie";
+                      router.push({ pathname: path, params: { id: item.id } });
                     }}
                   >
-                    {item.type.toUpperCase()}
-                  </Badge>
-                </View>
-              </View>
-              {item.schedule !== "." && (
-                <Text style={[inlineStyles.type, { color: colors.text }]}>
-                  {/* TODO: fix date format */}
-                  {item.schedule && isValid(parseISO(item.schedule))
-                    ? format(item.schedule, "dd/MM/yyyy")
-                    : item.schedule}
-                </Text>
-              )}
-              <Text style={[inlineStyles.type, { color: colors.text }]}>
-                Status: {item.status}
-              </Text>
-              {item.priority !== "." && (
-                <Text style={[inlineStyles.type, { color: colors.text }]}>
-                  Priority: {item.priority}
-                </Text>
-              )}
-              {item.current_season &&
-                item.current_season > 0 &&
-                item.current_episode &&
-                item.current_episode > 0 && (
-                  <Text style={[inlineStyles.type, { color: colors.text }]}>
-                    {`S${item.current_season} E${item.current_episode}`}
-                  </Text>
-                )}
-            </TouchableOpacity>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        backgroundColor: "#121212",
+                        borderRadius: 16,
+                        alignItems: "center",
+                      }}
+                    >
+                      {item.image ? (
+                        <Image
+                          source={{ uri: item.image }}
+                          style={{
+                            width: 60,
+                            height: 90,
+                            borderRadius: 10,
+                            marginRight: 10,
+                          }}
+                          resizeMode="cover"
+                        />
+                      ) : null}
+                      <View
+                        style={{
+                          flex: 1,
+                        }}
+                      >
+                        <Text
+                          style={[inlineStyles.title, { color: colors.text }]}
+                        >
+                          {item.name}
+                        </Text>
+                        <Text
+                          style={{ color: "#aaa", fontSize: 12, marginTop: 4 }}
+                        >
+                          {item.platform}
+                          {item.schedule !== "." && item.schedule !== ""
+                            ? ` | ${
+                                item.schedule &&
+                                isValid(parseISO(item.schedule))
+                                  ? format(item.schedule, "dd/MM/yyyy")
+                                  : item.schedule
+                              }`
+                            : ""}
+                        </Text>
+                        <Text
+                          style={{ color: "#ddd", fontSize: 12, marginTop: 6 }}
+                        >
+                          S{item.current_season} E{item.current_episode}
+                        </Text>
+                        <View
+                          style={{
+                            height: 4,
+                            backgroundColor: "#333",
+                            borderRadius: 4,
+                            marginTop: 6,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: 4,
+                              backgroundColor: "#facc15",
+                              width: `${progress * 100}%`,
+                            }}
+                          />
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginTop: 8,
+                          }}
+                        >
+                          <View style={{ gap: 6 }}>
+                            <Text
+                              style={{
+                                color: "#aaa",
+                                fontSize: 12,
+                              }}
+                            >
+                              {item.status}
+                              {" | " + item.priority}
+                            </Text>
+                            <Badge
+                              visible
+                              style={{
+                                backgroundColor:
+                                  item.type === "Serie" ? "#4f83cc" : "#cc4f4f",
+                                alignSelf: "flex-start",
+                              }}
+                            >
+                              {item.type.toUpperCase()}
+                            </Badge>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => onIncrement(item)}
+                            style={{
+                              backgroundColor: "#3b82f6",
+                              paddingHorizontal: 10,
+                              paddingVertical: 8,
+                              borderRadius: 12,
+                              marginLeft: 10,
+                              opacity: updatingItem?.id === item.id ? 0.6 : 1,
+                            }}
+                            disabled={updatingItem?.id === item.id}
+                          >
+                            {updatingItem?.id === item.id ? (
+                              <Spinner color="#fff" />
+                            ) : (
+                              <Text
+                                style={{ color: "#fff", fontWeight: "bold" }}
+                              >
+                                +1
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+            />
           )}
-        />
+        </>
       )}
     </SafeAreaView>
   );
@@ -433,7 +559,7 @@ const inlineStyles = StyleSheet.create({
     marginBottom: 8,
   },
   header: { fontSize: 24, fontWeight: "bold" },
-  filterIcon: { padding: 4 },
+  filterIcon: { padding: 8 },
   searchInput: {
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -446,7 +572,6 @@ const inlineStyles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 12,
-    // padding: 8,
   },
   filterTitle: { fontWeight: "bold", marginBottom: 4 },
   filterOptions: { flexDirection: "row", flexWrap: "wrap", marginBottom: 8 },
@@ -458,7 +583,7 @@ const inlineStyles = StyleSheet.create({
     marginBottom: 8,
   },
   item: {
-    padding: 16,
+    padding: 8,
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 12,
