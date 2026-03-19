@@ -273,6 +273,29 @@ export default function AddMedia() {
               onChange={(text: string) => setForm({ ...form, image: text })}
               style={styles.input}
             />
+            <FormPicker
+              label="Category"
+              selectedValue={form.category}
+              onValueChange={(value: string) =>
+                setForm({ ...form, category: value })
+              }
+              options={[
+                { label: "Action", value: "Action" },
+                { label: "Comedy", value: "Comedy" },
+                { label: "Drama", value: "Drama" },
+                { label: "Fantasy", value: "Fantasy" },
+                { label: "Horror", value: "Horror" },
+                { label: "Romance", value: "Romance" },
+                { label: "Sci-Fi", value: "Sci-Fi" },
+                { label: "Vlaams", value: "Vlaams" },
+                { label: "Other", value: "Other" },
+                { label: "Reality", value: "Reality" },
+                { label: "Documentary", value: "Documentary" },
+                { label: "Sitcom", value: "Sitcom" },
+                { label: "Costume", value: "Costume" },
+              ]}
+              style={styles.picker}
+            />
             <FormField
               label="Platform"
               value={form.platform}
@@ -354,45 +377,23 @@ export default function AddMedia() {
               ]}
               style={styles.picker}
             />
+            <FormField
+              label="Rating"
+              value={form.rating?.toString()}
+              onChange={(text: number) => setForm({ ...form, rating: text })}
+              style={styles.input}
+            />
             <FormTextArea
               label="Notes"
               value={form.notes}
               onChange={(text: string) => setForm({ ...form, notes: text })}
               style={styles.input}
             />
-            <FormPicker
-              label="Category"
-              selectedValue={form.category}
-              onValueChange={(value: string) =>
-                setForm({ ...form, category: value })
-              }
-              options={[
-                { label: "Action", value: "Action" },
-                { label: "Comedy", value: "Comedy" },
-                { label: "Drama", value: "Drama" },
-                { label: "Fantasy", value: "Fantasy" },
-                { label: "Horror", value: "Horror" },
-                { label: "Romance", value: "Romance" },
-                { label: "Sci-Fi", value: "Sci-Fi" },
-                { label: "Vlaams", value: "Vlaams" },
-                { label: "Other", value: "Other" },
-                { label: "Reality", value: "Reality" },
-                { label: "Documentary", value: "Documentary" },
-                { label: "Sitcom", value: "Sitcom" },
-              ]}
-              style={styles.picker}
-            />
             <FormField
               label="Updated On"
               value={new Date(form.updated_on).toLocaleString("en-GB")}
               editable={false}
               style={[styles.input, { backgroundColor: colors.card }]}
-            />
-            <FormField
-              label="Rating"
-              value={form.rating?.toString()}
-              onChange={(text: number) => setForm({ ...form, rating: text })}
-              style={styles.input}
             />
           </View>
         )}

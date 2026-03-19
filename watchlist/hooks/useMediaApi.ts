@@ -23,7 +23,7 @@ export const useMediaApi = () => {
     });
     const added = await response.json();
     newItem.id = added.id;
-    setItems(prev => [...prev, newItem]);
+    setItems((prev) => [...prev, newItem]);
   };
 
   const updateMedia = async (updatedItem: MediaItem) => {
@@ -37,11 +37,29 @@ export const useMediaApi = () => {
     });
 
     if (!response.ok) throw new Error("Update failed");
-    setItems(prev =>
-      prev.map(i => (String(i.id) === String(updatedItem.id) ? updatedItem : i))
+    setItems((prev) =>
+      prev.map((i) =>
+        String(i.id) === String(updatedItem.id) ? updatedItem : i,
+      ),
     );
   };
 
+  const deleteMedia = async (id: string) => {
+    const SHEET_API_URL = await getUrl();
+    console.log(id);
+    const body = { _method: "DELETE", id };
 
-  return { fetchMedia, addMedia, updateMedia };
+    const response = await fetch(SHEET_API_URL!, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    console.log(response);
+
+    if (!response.ok) throw new Error("Delete failed");
+    setItems((prev) => prev.filter((i) => String(i.id) !== String(id)));
+  };
+
+  return { fetchMedia, addMedia, updateMedia, deleteMedia };
 };

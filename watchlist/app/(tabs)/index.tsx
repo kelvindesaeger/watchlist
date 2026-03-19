@@ -10,6 +10,7 @@ import { format, isValid, parseISO } from "date-fns";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Easing,
   FlatList,
@@ -41,6 +42,7 @@ const CATEGORY_FILTERS = [
   "Reality",
   "Documentary",
   "Sitcom",
+  "Costume",
 ];
 
 const SORT_OPTIONS = [
@@ -71,7 +73,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const { updateMedia } = useMediaApi();
+  const { updateMedia, deleteMedia } = useMediaApi();
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -174,10 +176,12 @@ export default function HomeScreen() {
     let currentSeason = item.current_season || 1;
     let currentEpisode = item.current_episode || 0;
     const maxEpisodes = episodesPerSeason[currentSeason - 1] || 0;
-    console.log(currentEpisode, maxEpisodes);
     if (currentEpisode < maxEpisodes) {
       currentEpisode += 1;
-    } else if (currentSeason < episodesPerSeason.length) {
+    } else if (
+      currentSeason <
+      episodesPerSeason[currentSeason - 1].toString().split(";").length
+    ) {
       currentSeason += 1;
       currentEpisode = 1;
     } else {
@@ -207,14 +211,30 @@ export default function HomeScreen() {
       .finally(() => setUpdatingItem(null));
   };
 
-  const onDelete = async (item: MediaItem) => {
-    try {
-      // TODO: call your delete API here
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-      toastSuccess("Item deleted");
-    } catch {
-      toastError("Failed to delete");
-    }
+  const onDelete = (item: MediaItem) => {
+    Alert.alert(
+      "Delete item",
+      `Are you sure you want to delete "${item.name}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteMedia(item.id);
+              setItems((prev) => prev.filter((i) => i.id !== item.id));
+              toastSuccess("Item deleted");
+            } catch {
+              toastError("Failed to delete");
+            }
+          },
+        },
+      ],
+    );
   };
 
   const onMarkWatched = async (item: MediaItem) => {
@@ -283,7 +303,7 @@ export default function HomeScreen() {
                 selectedTypes.length > 0 ||
                 selectedStatuses.length > 0 ||
                 selectedPriorities.length > 0 ||
-                selectedCategory
+                selectedCategory !== "-"
                   ? colors.primary // active color
                   : colors.text // default color
               }
@@ -485,7 +505,7 @@ export default function HomeScreen() {
                   typeof item.episode === "string" ? item.episode : "";
                 const episodesPerSeason = episodeString.includes(";")
                   ? episodeString.split(";").map(Number)
-                  : [];
+                  : [Number(item.episode)];
                 const totalEpisodes = episodesPerSeason.reduce(
                   (a, b) => a + b,
                   0,
@@ -505,7 +525,7 @@ export default function HomeScreen() {
                     renderLeftActions={() => renderLeftActions(item)}
                     renderRightActions={() => renderRightActions(item)}
                     onSwipeableOpen={(direction) => {
-                      if (direction === "left") {
+                      if (direction === "right") {
                         onDelete(item);
                       } else {
                         onMarkWatched(item);
@@ -539,12 +559,12 @@ export default function HomeScreen() {
                           alignItems: "center",
                         }}
                       >
-                        {item.image ? (
+                        {item.image && item.image !== "." ? (
                           <Image
                             source={{ uri: item.image }}
                             style={{
-                              width: 60,
-                              height: 90,
+                              width: 80,
+                              height: 126,
                               borderRadius: 10,
                               marginRight: 10,
                             }}
@@ -561,55 +581,60 @@ export default function HomeScreen() {
                           >
                             {item.name}
                           </Text>
-                          <Text
-                            style={{
-                              color: "#aaa",
-                              fontSize: 12,
-                              marginTop: 4,
-                            }}
-                          >
-                            {item.platform}
-                            {item.schedule !== "." && item.schedule !== ""
-                              ? ` | ${
-                                  item.schedule &&
-                                  isValid(parseISO(item.schedule))
-                                    ? format(item.schedule, "dd/MM/yyyy")
-                                    : item.schedule
-                                }`
-                              : ""}
-                          </Text>
-                          <Text
-                            style={{
-                              color: "#ddd",
-                              fontSize: 12,
-                              marginTop: 6,
-                            }}
-                          >
-                            S{item.current_season} E{item.current_episode}
-                          </Text>
-                          <View
-                            style={{
-                              height: 4,
-                              backgroundColor: "#333",
-                              borderRadius: 4,
-                              marginTop: 6,
-                              overflow: "hidden",
-                            }}
-                          >
-                            <View
-                              style={{
-                                height: 4,
-                                backgroundColor: "#facc15",
-                                width: `${progress * 100}%`,
-                              }}
-                            />
-                          </View>
+                          {item.type === "Serie" && (
+                            <>
+                              <Text
+                                style={{
+                                  color: "#aaa",
+                                  fontSize: 12,
+                                  marginTop: 4,
+                                }}
+                              >
+                                {item.platform}
+                                {item.schedule !== "." && item.schedule !== ""
+                                  ? ` | ${
+                                      item.schedule &&
+                                      isValid(parseISO(item.schedule))
+                                        ? format(item.schedule, "dd/MM/yyyy")
+                                        : item.schedule
+                                    }`
+                                  : ""}
+                              </Text>
+                              <Text
+                                style={{
+                                  color: "#ddd",
+                                  fontSize: 12,
+                                  marginTop: 6,
+                                }}
+                              >
+                                S{item.current_season} E{item.current_episode}
+                              </Text>
+                              <View
+                                style={{
+                                  height: 4,
+                                  backgroundColor: "#333",
+                                  borderRadius: 4,
+                                  marginTop: 6,
+                                  overflow: "hidden",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    height: 4,
+                                    backgroundColor: "#facc15",
+                                    width: `${progress * 100}%`,
+                                  }}
+                                />
+                              </View>
+                            </>
+                          )}
                           <View
                             style={{
                               flexDirection: "row",
                               alignItems: "center",
                               justifyContent: "space-between",
-                              marginTop: 8,
+                              marginTop: 4,
                             }}
                           >
                             <View style={{ gap: 6 }}>
@@ -635,31 +660,34 @@ export default function HomeScreen() {
                                 {item.type.toUpperCase()}
                               </Badge>
                             </View>
-                            <TouchableOpacity
-                              onPress={() => onIncrement(item)}
-                              style={{
-                                backgroundColor: "#3b82f6",
-                                paddingHorizontal: 10,
-                                paddingVertical: 8,
-                                borderRadius: 12,
-                                marginLeft: 10,
-                                opacity: updatingItem?.id === item.id ? 0.6 : 1,
-                              }}
-                              disabled={updatingItem?.id === item.id}
-                            >
-                              {updatingItem?.id === item.id ? (
-                                <Spinner color="#fff" />
-                              ) : (
-                                <Text
-                                  style={{
-                                    color: "#fff",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  +1
-                                </Text>
-                              )}
-                            </TouchableOpacity>
+                            {item.type === "Serie" && (
+                              <TouchableOpacity
+                                onPress={() => onIncrement(item)}
+                                style={{
+                                  backgroundColor: "#3b82f6",
+                                  paddingHorizontal: 10,
+                                  paddingVertical: 8,
+                                  borderRadius: 12,
+                                  marginLeft: 10,
+                                  opacity:
+                                    updatingItem?.id === item.id ? 0.6 : 1,
+                                }}
+                                disabled={updatingItem?.id === item.id}
+                              >
+                                {updatingItem?.id === item.id ? (
+                                  <Spinner color="#fff" />
+                                ) : (
+                                  <Text
+                                    style={{
+                                      color: "#fff",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    +1
+                                  </Text>
+                                )}
+                              </TouchableOpacity>
+                            )}
                           </View>
                         </View>
                       </View>

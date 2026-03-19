@@ -80,8 +80,9 @@ export default function SerieDetail() {
       form.current_episode !== serie.current_episode ||
       form.status !== serie.status ||
       form.priority !== serie.priority ||
-      form.notes !== serie.notes;
-    form.category !== serie.category || form.rating !== serie.rating;
+      form.notes !== serie.notes ||
+      form.category !== serie.category ||
+      form.rating !== serie.rating;
     setIsDataChanged(hasChanged);
   }, [form]);
 
@@ -290,6 +291,7 @@ export default function SerieDetail() {
             { label: "Reality", value: "Reality" },
             { label: "Documentary", value: "Documentary" },
             { label: "Sitcom", value: "Sitcom" },
+            { label: "Costume", value: "Costume" },
           ]}
           style={styles.picker}
         />
